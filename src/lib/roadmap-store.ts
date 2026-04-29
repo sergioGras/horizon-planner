@@ -113,11 +113,18 @@ export const useRoadmap = create<RoadmapState>()(
     }),
     {
       name: "roadmap-v1",
-      storage: createJSONStorage(() =>
-        typeof window !== "undefined"
-          ? window.localStorage
-          : ({ getItem: () => null, setItem: () => {}, removeItem: () => {} } as Storage),
-      ),
+      storage: createJSONStorage(() => {
+        if (typeof window !== "undefined") return window.localStorage;
+        const noop: Storage = {
+          length: 0,
+          clear: () => {},
+          getItem: () => null,
+          key: () => null,
+          removeItem: () => {},
+          setItem: () => {},
+        };
+        return noop;
+      }),
     },
   ),
 );
