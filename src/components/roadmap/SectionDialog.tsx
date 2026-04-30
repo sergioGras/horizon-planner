@@ -41,7 +41,7 @@ export function SectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
+      <DialogContent className="sm:max-w-[420px] bg-card border-border">
         <DialogHeader>
           <DialogTitle className="font-display tracking-tight">{title}</DialogTitle>
         </DialogHeader>
@@ -49,10 +49,12 @@ export function SectionDialog({
           <Label htmlFor="section-name">Name</Label>
           <Input
             id="section-name"
+            name="section-name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Core"
             autoFocus
+            autoComplete="off"
             onKeyDown={(e) => {
               if (e.key === "Enter") submit();
             }}

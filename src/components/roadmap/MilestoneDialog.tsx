@@ -24,6 +24,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { useRoadmap, type Milestone } from "@/lib/roadmap-store";
+import { toLocalISODate } from "@/lib/date-utils";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 type Props = {
@@ -37,7 +38,13 @@ type Props = {
   defaultDate?: string;
 };
 
-export function MilestoneDialog({ open, onOpenChange, milestone, defaultSectionId, defaultDate }: Props) {
+export function MilestoneDialog({
+  open,
+  onOpenChange,
+  milestone,
+  defaultSectionId,
+  defaultDate,
+}: Props) {
   const sections = useRoadmap((s) => s.sections);
   const addMilestone = useRoadmap((s) => s.addMilestone);
   const updateMilestone = useRoadmap((s) => s.updateMilestone);
@@ -53,7 +60,7 @@ export function MilestoneDialog({ open, onOpenChange, milestone, defaultSectionI
     if (!open) return;
     if (milestone) {
       setTitle(milestone.title);
-      setDescription(milestone.description);
+      setDescription(milestone.description ?? "");
       setSectionId(milestone.sectionId);
       setDate(parseISO(milestone.date));
     } else {
@@ -70,9 +77,9 @@ export function MilestoneDialog({ open, onOpenChange, milestone, defaultSectionI
     if (!canSave || !date) return;
     const payload = {
       title: title.trim(),
-      description: description.trim(),
+      description: description.trim() || undefined,
       sectionId,
-      date: date.toISOString().slice(0, 10),
+      date: toLocalISODate(date),
     };
     if (milestone) updateMilestone(milestone.id, payload);
     else addMilestone(payload);
@@ -97,39 +104,43 @@ export function MilestoneDialog({ open, onOpenChange, milestone, defaultSectionI
               <Label htmlFor="title">Title</Label>
               <Input
                 id="title"
+                name="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Foundation refactor v1"
                 autoFocus
+                autoComplete="off"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Section</Label>
+                <Label htmlFor="section">Section</Label>
                 <Select value={sectionId} onValueChange={setSectionId}>
-                  <SelectTrigger>
+                  <SelectTrigger id="section" aria-label="Section">
                     <SelectValue placeholder="Choose section" />
                   </SelectTrigger>
                   <SelectContent>
                     {sections.map((s) => (
                       <SelectItem key={s.id} value={s.id}>
-                        {s.name}
+                        {s.title}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Date</Label>
+                <Label htmlFor="milestone-date">Date</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
+                      id="milestone-date"
                       variant="outline"
                       className={cn(
                         "w-full justify-start text-left font-normal",
                         !date && "text-muted-foreground",
                       )}
+                      aria-label="Date"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
                       {date ? format(date, "PPP") : "Pick a date"}
@@ -152,6 +163,7 @@ export function MilestoneDialog({ open, onOpenChange, milestone, defaultSectionI
               <Label htmlFor="desc">Description</Label>
               <Textarea
                 id="desc"
+                name="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Optional context."

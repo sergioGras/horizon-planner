@@ -32,8 +32,7 @@ export const Route = createRootRoute({
       { title: "Roadmap — Editorial Timeline Board" },
       {
         name: "description",
-        content:
-          "A calm, editorial roadmap for planning milestones across workstreams.",
+        content: "A calm, editorial roadmap for planning milestones across workstreams.",
       },
       { property: "og:title", content: "Roadmap — Editorial Timeline Board" },
       {
