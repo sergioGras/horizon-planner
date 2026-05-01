@@ -1,0 +1,58 @@
+{
+  "schema": "horizon-roadmap",
+  "version": 1,
+  "project": {
+    "title": "Personal Roadmap",
+    "scale": "quarter",
+    "anchor": "2026-01-01"
+  },
+  "sections": [
+    {
+      "key": "treeplet-core",
+      "title": "TreePlet Core",
+      "order": 0,
+      "color": "sage"
+    },
+    {
+      "key": "learning",
+      "title": "Learning",
+      "order": 1,
+      "color": "sky"
+    },
+    {
+      "key": "personal-strategic",
+      "title": "Personal Strategic",
+      "order": 2,
+      "color": "clay"
+    },
+    {
+      "key": "sandbox",
+      "title": "Optional / Sandbox",
+      "order": 3,
+      "color": "lavender"
+    }
+  ],
+  "milestones": [
+    {
+      "title": "Connectivity Stabilization",
+      "sectionKey": "treeplet-core",
+      "date": "2026-05-31",
+      "type": "commitment",
+      "description": "Device connectivity, certificates, and reliable ingestion pipeline."
+    },
+    {
+      "title": "Karpathy AI",
+      "sectionKey": "learning",
+      "date": "2026-06-15",
+      "type": "commitment",
+      "description": "Transformers, GPT architecture, and implementation intuition."
+    },
+    {
+      "title": "Housing Exploration",
+      "sectionKey": "personal-strategic",
+      "date": "2026-06-30",
+      "type": "intention",
+      "description": "Research housing and mobility options."
+    }
+  ]
+}

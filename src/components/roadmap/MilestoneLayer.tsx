@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { format, isSameDay, parseISO } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { Milestone } from "@/lib/roadmap-store";
@@ -94,7 +95,7 @@ function MilestoneChip({
         "pointer-events-auto absolute -translate-x-2 -translate-y-1/2",
         "inline-flex items-center gap-2 rounded-md text-left",
         "transition-transform hover:scale-[1.01]",
-        compact ? "max-w-[118px] py-1 pl-1.5 pr-2" : "max-w-[220px] py-1.5 pl-2 pr-3",
+        compact ? "max-w-[124px] py-1 pl-1.5 pr-2" : "max-w-[236px] py-1.5 pl-2 pr-3",
         isIntention
           ? "border border-dashed shadow-none"
           : "border bg-card text-primary shadow-sm hover:shadow-md",
@@ -125,6 +126,24 @@ function MilestoneChip({
         }}
       />
       <span className="min-w-0">
+        {!compact && (
+          <Badge
+            variant="outline"
+            className={cn(
+              "mb-1 h-4 border px-1.5 py-0 text-[9px] font-medium uppercase tracking-[0.14em]",
+              isIntention
+                ? "border-dashed bg-transparent"
+                : "bg-white/70 text-primary/80 dark:bg-background/60",
+            )}
+            style={{
+              borderColor: isIntention ? sectionColor.border : sectionColor.soft,
+              color: sectionColor.ink,
+              backgroundColor: isIntention ? sectionColor.soft : undefined,
+            }}
+          >
+            {isIntention ? "Intention" : "Commitment"}
+          </Badge>
+        )}
         <span
           className={cn(
             "block truncate font-medium",
@@ -133,9 +152,9 @@ function MilestoneChip({
         >
           {milestone.title}
         </span>
-        {!compact && (
-          <span className="block text-[9px] uppercase tracking-[0.14em] opacity-70 md:text-[10px]">
-            {milestone.type === "intention" ? "Intention" : "Commitment"}
+        {compact && (
+          <span className="mt-0.5 block text-[9px] uppercase tracking-[0.14em] opacity-70">
+            {isIntention ? "Intent" : "Commit"}
           </span>
         )}
       </span>

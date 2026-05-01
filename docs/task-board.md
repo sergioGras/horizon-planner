@@ -1,25 +1,9 @@
-# Agent Task Board
+# Product Task Board
 
-## Now
+This file is deprecated.
 
-- Inspect current Lovable code structure.
-- Identify main timeline component.
-- Simplify component boundaries if needed.
-- Improve visual hierarchy.
-- Ensure month / quarter navigation is clear.
-- Ensure add/edit/delete flows are usable.
+Use the status files under `docs/status/` instead:
 
-## Next
-
-- Add default 2026 roadmap data.
-- Add commitment vs intention visual encoding.
-- Add milestone clustering.
-- Add section reorder.
-- Add local persistence.
-
-## Later
-
-- Add duration blocks.
-- Add export / print view.
-- Add yearly overview.
-- Add compact mode.
+- `docs/status/TASKS.md`
+- `docs/status/PROJECT_STATE.md`
+- `docs/status/CHANGELOG.md`

@@ -23,7 +23,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
-import { useRoadmap, type Milestone } from "@/lib/roadmap-store";
+import { useRoadmap, type Milestone, type MilestoneType } from "@/lib/roadmap-store";
 import { toLocalISODate } from "@/lib/date-utils";
 import { ConfirmDialog } from "./ConfirmDialog";
 
@@ -54,6 +54,7 @@ export function MilestoneDialog({
   const [description, setDescription] = useState("");
   const [sectionId, setSectionId] = useState<string>("");
   const [date, setDate] = useState<Date | undefined>(undefined);
+  const [type, setType] = useState<MilestoneType>("commitment");
   const [confirmDelete, setConfirmDelete] = useState(false);
 
   useEffect(() => {
@@ -63,11 +64,13 @@ export function MilestoneDialog({
       setDescription(milestone.description ?? "");
       setSectionId(milestone.sectionId);
       setDate(parseISO(milestone.date));
+      setType(milestone.type ?? "commitment");
     } else {
       setTitle("");
       setDescription("");
       setSectionId(defaultSectionId ?? sections[0]?.id ?? "");
       setDate(defaultDate ? parseISO(defaultDate) : new Date());
+      setType("commitment");
     }
   }, [open, milestone, defaultSectionId, defaultDate, sections]);
 
@@ -80,6 +83,7 @@ export function MilestoneDialog({
       description: description.trim() || undefined,
       sectionId,
       date: toLocalISODate(date),
+      type,
     };
     if (milestone) void updateMilestone(milestone.id, payload);
     else void addMilestone(payload);
@@ -113,7 +117,7 @@ export function MilestoneDialog({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="section">Section</Label>
                 <Select value={sectionId} onValueChange={setSectionId}>
@@ -126,6 +130,18 @@ export function MilestoneDialog({
                         {s.title}
                       </SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="milestone-type">Type</Label>
+                <Select value={type} onValueChange={(value) => setType(value as MilestoneType)}>
+                  <SelectTrigger id="milestone-type" aria-label="Type">
+                    <SelectValue placeholder="Choose type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="commitment">Commitment</SelectItem>
+                    <SelectItem value="intention">Intention</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
