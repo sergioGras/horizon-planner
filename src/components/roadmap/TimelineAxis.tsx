@@ -20,7 +20,11 @@ export function TimelineAxis({ window }: Props) {
           <span
             className={cn(
               "truncate text-[10px] uppercase tracking-[0.12em] md:text-[11px]",
-              tick.isMajor ? "text-primary font-medium" : "text-muted-foreground",
+              tick.isLookahead
+                ? "text-muted-foreground/55"
+                : tick.isMajor
+                  ? "text-primary font-medium"
+                  : "text-muted-foreground",
             )}
           >
             {tick.isMajor ? tick.label : `Wk ${tick.label}`}

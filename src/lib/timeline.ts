@@ -2,31 +2,73 @@ import {
   addDays,
   addMonths,
   addQuarters,
+  addYears,
   differenceInCalendarDays,
   endOfMonth,
   endOfQuarter,
+  endOfYear,
   format,
   startOfMonth,
   startOfQuarter,
+  startOfYear,
 } from "date-fns";
 import type { TimeScale } from "./roadmap-store";
 
 export type TimeWindow = {
   start: Date;
   end: Date;
+  activeEnd: Date;
+  scale: TimeScale;
   label: string;
   /** number of days in window */
   days: number;
   /** secondary unit ticks (e.g. months in quarter, weeks in month) */
-  ticks: { label: string; offsetPct: number; widthPct: number; isMajor?: boolean }[];
+  ticks: {
+    label: string;
+    offsetPct: number;
+    widthPct: number;
+    isMajor?: boolean;
+    isLookahead?: boolean;
+  }[];
 };
 
 export function getWindow(anchor: Date, scale: TimeScale): TimeWindow {
+  if (scale === "year") {
+    const start = startOfYear(anchor);
+    const activeEnd = endOfYear(anchor);
+    const end = endOfMonth(addMonths(activeEnd, 1));
+    const days = differenceInCalendarDays(end, start) + 1;
+    const ticks = Array.from({ length: 13 }, (_, i) => {
+      const monthStart = addMonths(start, i);
+      const monthEnd = endOfMonth(monthStart);
+      const offset = differenceInCalendarDays(monthStart, start);
+      const width = differenceInCalendarDays(monthEnd, monthStart) + 1;
+      return {
+        label: format(monthStart, "MMM"),
+        offsetPct: (offset / days) * 100,
+        widthPct: (width / days) * 100,
+        isMajor: true,
+        isLookahead: i === 12,
+      };
+    });
+
+    return {
+      start,
+      end,
+      activeEnd,
+      scale,
+      days,
+      label: format(start, "yyyy"),
+      ticks,
+    };
+  }
+
   if (scale === "quarter") {
     const start = startOfQuarter(anchor);
-    const end = endOfQuarter(anchor);
+    const activeEnd = endOfQuarter(anchor);
+    const end = endOfMonth(addMonths(activeEnd, 1));
     const days = differenceInCalendarDays(end, start) + 1;
-    const ticks = [0, 1, 2].map((i) => {
+    const ticks = [0, 1, 2, 3].map((i) => {
       const monthStart = addMonths(start, i);
       const monthEnd = endOfMonth(monthStart);
       const offset = differenceInCalendarDays(monthStart, start);
@@ -36,23 +78,27 @@ export function getWindow(anchor: Date, scale: TimeScale): TimeWindow {
         offsetPct: (offset / days) * 100,
         widthPct: (width / days) * 100,
         isMajor: true,
+        isLookahead: i === 3,
       };
     });
     return {
       start,
       end,
+      activeEnd,
+      scale,
       days,
       label: `Q${Math.floor(start.getMonth() / 3) + 1} ${format(start, "yyyy")}`,
       ticks,
     };
   }
-  // month scale — show a single month
+
   const start = startOfMonth(anchor);
-  const end = endOfMonth(anchor);
+  const activeEnd = endOfMonth(anchor);
+  const end = addDays(activeEnd, 7);
   const days = differenceInCalendarDays(end, start) + 1;
-  // weekly ticks
   const ticks: TimeWindow["ticks"] = [];
   let cursor = start;
+
   while (cursor <= end) {
     const weekEnd = addDays(cursor, 6) > end ? end : addDays(cursor, 6);
     const offset = differenceInCalendarDays(cursor, start);
@@ -61,12 +107,16 @@ export function getWindow(anchor: Date, scale: TimeScale): TimeWindow {
       label: format(cursor, "d"),
       offsetPct: (offset / days) * 100,
       widthPct: (width / days) * 100,
+      isLookahead: cursor > activeEnd,
     });
     cursor = addDays(cursor, 7);
   }
+
   return {
     start,
     end,
+    activeEnd,
+    scale,
     days,
     label: format(start, "MMMM yyyy"),
     ticks,
@@ -74,6 +124,7 @@ export function getWindow(anchor: Date, scale: TimeScale): TimeWindow {
 }
 
 export function shiftAnchor(anchor: Date, scale: TimeScale, dir: -1 | 1) {
+  if (scale === "year") return addYears(anchor, dir);
   return scale === "quarter" ? addQuarters(anchor, dir) : addMonths(anchor, dir);
 }
 

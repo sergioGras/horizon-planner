@@ -81,8 +81,8 @@ export function MilestoneDialog({
       sectionId,
       date: toLocalISODate(date),
     };
-    if (milestone) updateMilestone(milestone.id, payload);
-    else addMilestone(payload);
+    if (milestone) void updateMilestone(milestone.id, payload);
+    else void addMilestone(payload);
     onOpenChange(false);
   }
 
@@ -206,7 +206,7 @@ export function MilestoneDialog({
           confirmLabel="Delete"
           destructive
           onConfirm={() => {
-            deleteMilestone(milestone.id);
+            void deleteMilestone(milestone.id);
             setConfirmDelete(false);
             onOpenChange(false);
           }}

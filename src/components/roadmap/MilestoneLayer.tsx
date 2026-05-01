@@ -1,38 +1,66 @@
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { format, isSameDay, parseISO } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import type { Milestone } from "@/lib/roadmap-store";
-import { groupMilestones, type TimeWindow } from "@/lib/roadmap-view";
+import { groupMilestones } from "@/lib/roadmap-view";
+import type { SectionColor } from "@/lib/section-colors";
+import { dateOffsetPct, type TimeWindow } from "@/lib/timeline";
 
 type Props = {
   window: TimeWindow;
   items: Milestone[];
+  sectionColor: SectionColor;
   onOpen: (milestone: Milestone) => void;
 };
 
-export function MilestoneLayer({ window, items, onOpen }: Props) {
+export function MilestoneLayer({ window, items, sectionColor, onOpen }: Props) {
+  const layerRef = useRef<HTMLDivElement>(null);
+  const [layerHeight, setLayerHeight] = useState(0);
   const groups = groupMilestones(items, window);
+  const stackCapacity = getStackCapacity(layerHeight);
+
+  useEffect(() => {
+    const layer = layerRef.current;
+    if (!layer) return;
+
+    const observer = new ResizeObserver(([entry]) => {
+      setLayerHeight(entry.contentRect.height);
+    });
+
+    observer.observe(layer);
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <div className="pointer-events-none absolute inset-0 flex items-center px-1 py-2">
-      <div className="relative h-full w-full">
-        {groups.map((group, index) =>
-          group.items.length === 1 ? (
+      <div ref={layerRef} className="relative h-full w-full">
+        {groups.map((group, index) => {
+          if (group.items.length > stackCapacity) {
+            return (
+              <ClusterChip
+                key={`cluster-${index}`}
+                items={group.items}
+                offsetPct={group.offsetPct}
+                sectionColor={sectionColor}
+                onOpen={onOpen}
+              />
+            );
+          }
+
+          return group.items.map((milestone, stackIndex) => (
             <MilestoneChip
-              key={group.items[0].id}
-              milestone={group.items[0]}
-              offsetPct={group.offsetPct}
-              onClick={() => onOpen(group.items[0])}
+              key={milestone.id}
+              milestone={milestone}
+              offsetPct={dateOffsetPct(parseISO(milestone.date), window)}
+              stackIndex={stackIndex}
+              stackCount={group.items.length}
+              compact={window.scale === "year"}
+              sectionColor={sectionColor}
+              onClick={() => onOpen(milestone)}
             />
-          ) : (
-            <ClusterChip
-              key={`cluster-${index}`}
-              items={group.items}
-              offsetPct={group.offsetPct}
-              onOpen={onOpen}
-            />
-          ),
-        )}
+          ));
+        })}
       </div>
     </div>
   );
@@ -41,10 +69,18 @@ export function MilestoneLayer({ window, items, onOpen }: Props) {
 function MilestoneChip({
   milestone,
   offsetPct,
+  stackIndex,
+  stackCount,
+  compact,
+  sectionColor,
   onClick,
 }: {
   milestone: Milestone;
   offsetPct: number;
+  stackIndex: number;
+  stackCount: number;
+  compact: boolean;
+  sectionColor: SectionColor;
   onClick: () => void;
 }) {
   const date = parseISO(milestone.date);
@@ -55,41 +91,81 @@ function MilestoneChip({
     <button
       onClick={onClick}
       className={cn(
-        "pointer-events-auto absolute top-1/2 max-w-[220px] -translate-x-2 -translate-y-1/2",
-        "inline-flex items-center gap-2 rounded-md py-1.5 pl-2 pr-3 text-left",
+        "pointer-events-auto absolute -translate-x-2 -translate-y-1/2",
+        "inline-flex items-center gap-2 rounded-md text-left",
         "transition-transform hover:scale-[1.01]",
+        compact ? "max-w-[118px] py-1 pl-1.5 pr-2" : "max-w-[220px] py-1.5 pl-2 pr-3",
         isIntention
-          ? "border border-dashed border-border/80 bg-secondary/30 text-muted-foreground shadow-none hover:bg-secondary/45"
-          : "border border-border/80 bg-card text-primary shadow-sm hover:shadow-md",
+          ? "border border-dashed shadow-none"
+          : "border bg-card text-primary shadow-sm hover:shadow-md",
       )}
-      style={{ left: `${offsetPct}%` }}
+      style={
+        {
+          left: `${offsetPct}%`,
+          top: `${getStackTop(stackIndex, stackCount)}%`,
+          backgroundColor: isIntention ? sectionColor.soft : undefined,
+          borderColor: sectionColor.border,
+          color: isIntention ? sectionColor.ink : undefined,
+          "--section-color": sectionColor.swatch,
+          "--section-color-soft": sectionColor.soft,
+          "--section-color-border": sectionColor.border,
+          "--section-color-ink": sectionColor.ink,
+        } as CSSProperties
+      }
       title={`${milestone.title} - ${format(date, "PPP")}`}
     >
       <span
-        className={cn(
-          "h-1.5 w-1.5 shrink-0 rounded-full",
-          isToday ? "bg-[var(--highlight)]" : isIntention ? "bg-muted-foreground/50" : "bg-primary",
-        )}
+        className={cn(compact ? "h-1.5 w-1.5" : "h-1.5 w-1.5", "shrink-0 rounded-full")}
+        style={{
+          backgroundColor: isToday
+            ? "var(--highlight)"
+            : isIntention
+              ? sectionColor.border
+              : sectionColor.swatch,
+        }}
       />
       <span className="min-w-0">
-        <span className="block truncate text-[12px] font-medium md:text-[12.5px]">
+        <span
+          className={cn(
+            "block truncate font-medium",
+            compact ? "text-[10.5px] md:text-[11px]" : "text-[12px] md:text-[12.5px]",
+          )}
+        >
           {milestone.title}
         </span>
-        <span className="block text-[9px] uppercase tracking-[0.14em] opacity-70 md:text-[10px]">
-          {milestone.type === "intention" ? "Intention" : "Commitment"}
-        </span>
+        {!compact && (
+          <span className="block text-[9px] uppercase tracking-[0.14em] opacity-70 md:text-[10px]">
+            {milestone.type === "intention" ? "Intention" : "Commitment"}
+          </span>
+        )}
       </span>
     </button>
   );
 }
 
+function getStackCapacity(height: number) {
+  if (height >= 176) return 4;
+  if (height >= 132) return 3;
+  if (height >= 88) return 2;
+  return 1;
+}
+
+function getStackTop(index: number, count: number) {
+  if (count <= 1) return 50;
+  const spread = count === 2 ? 26 : count === 4 ? 21 : 24;
+  const start = 50 - ((count - 1) * spread) / 2;
+  return start + index * spread;
+}
+
 function ClusterChip({
   items,
   offsetPct,
+  sectionColor,
   onOpen,
 }: {
   items: Milestone[];
   offsetPct: number;
+  sectionColor: SectionColor;
   onOpen: (milestone: Milestone) => void;
 }) {
   return (
@@ -98,10 +174,15 @@ function ClusterChip({
         <button
           className={cn(
             "pointer-events-auto absolute top-1/2 -translate-x-2 -translate-y-1/2",
-            "inline-flex items-center gap-1.5 rounded-md bg-primary px-2.5 py-1.5 text-primary-foreground shadow-sm",
+            "inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 shadow-sm",
             "transition-transform hover:scale-[1.01] hover:shadow-md",
           )}
-          style={{ left: `${offsetPct}%` }}
+          style={{
+            left: `${offsetPct}%`,
+            backgroundColor: sectionColor.ink,
+            borderColor: sectionColor.border,
+            color: "var(--primary-foreground)",
+          }}
         >
           <span className="text-[12px] font-medium">{items.length} milestones</span>
         </button>

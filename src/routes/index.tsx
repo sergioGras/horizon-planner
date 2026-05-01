@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { AuthGate } from "@/components/auth/AuthGate";
 import { Board } from "@/components/roadmap/Board";
 
 export const Route = createFileRoute("/")({
@@ -6,5 +7,9 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  return <Board />;
+  return (
+    <AuthGate>
+      <Board />
+    </AuthGate>
+  );
 }

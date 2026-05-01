@@ -1,15 +1,26 @@
-import { useMemo, useRef, useState, type WheelEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BoardHeader } from "./BoardHeader";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { EmptyBoard } from "./EmptyBoard";
+import { ImportLocalDialog } from "./ImportLocalDialog";
 import { MilestoneDialog } from "./MilestoneDialog";
+import { ProjectDialog } from "./ProjectDialog";
 import { SectionDialog } from "./SectionDialog";
 import { SectionLane } from "./SectionLane";
 import { TimelineAxis } from "./TimelineAxis";
-import { useRoadmap, type Milestone, type Section } from "@/lib/roadmap-store";
+import { useAuth } from "@/lib/auth";
+import {
+  getImportDecisionKey,
+  readLocalRoadmapData,
+  useRoadmap,
+  type LocalRoadmapData,
+  type Milestone,
+  type Project,
+  type Section,
+} from "@/lib/roadmap-store";
 import { orderSections } from "@/lib/roadmap-view";
 import { getWindow, shiftAnchor } from "@/lib/timeline";
 import { fromLocalISODate, toLocalISODate, todayISO } from "@/lib/date-utils";
@@ -17,22 +28,42 @@ import { fromLocalISODate, toLocalISODate, todayISO } from "@/lib/date-utils";
 const WHEEL_NAV_THRESHOLD = 36;
 const WHEEL_NAV_COOLDOWN_MS = 650;
 
+function hasImportDecision(userId: string) {
+  return window.localStorage.getItem(getImportDecisionKey(userId)) === "done";
+}
+
+function saveImportDecision(userId: string) {
+  window.localStorage.setItem(getImportDecisionKey(userId), "done");
+}
+
 export function Board() {
+  const { user, signInWithGoogle, signOut } = useAuth();
+  const mode = useRoadmap((state) => state.mode);
+  const projects = useRoadmap((state) => state.projects);
+  const activeProjectId = useRoadmap((state) => state.activeProjectId);
   const sections = useRoadmap((state) => state.sections);
   const milestones = useRoadmap((state) => state.milestones);
   const scale = useRoadmap((state) => state.scale);
   const anchor = useRoadmap((state) => state.anchor);
+  const status = useRoadmap((state) => state.status);
+  const error = useRoadmap((state) => state.error);
   const setScale = useRoadmap((state) => state.setScale);
   const setAnchor = useRoadmap((state) => state.setAnchor);
+  const setActiveProject = useRoadmap((state) => state.setActiveProject);
+  const createProject = useRoadmap((state) => state.createProject);
+  const renameProject = useRoadmap((state) => state.renameProject);
+  const deleteProject = useRoadmap((state) => state.deleteProject);
   const addSection = useRoadmap((state) => state.addSection);
   const renameSection = useRoadmap((state) => state.renameSection);
   const deleteSection = useRoadmap((state) => state.deleteSection);
   const moveSection = useRoadmap((state) => state.moveSection);
+  const importLocalRoadmap = useRoadmap((state) => state.importLocalRoadmap);
 
   const orderedSections = useMemo(() => orderSections(sections), [sections]);
   const anchorDate = useMemo(() => fromLocalISODate(anchor), [anchor]);
   const window = useMemo(() => getWindow(anchorDate, scale), [anchorDate, scale]);
   const lastWheelNavigationAt = useRef(0);
+  const hasProvisionedInitialProject = useRef(false);
   const laneDensity =
     orderedSections.length > 12 ? "dense" : orderedSections.length > 8 ? "compact" : "comfortable";
 
@@ -44,8 +75,39 @@ export function Board() {
   const [sectionAddOpen, setSectionAddOpen] = useState(false);
   const [sectionRename, setSectionRename] = useState<Section | null>(null);
   const [sectionDelete, setSectionDelete] = useState<Section | null>(null);
+  const [projectAddOpen, setProjectAddOpen] = useState(false);
+  const [projectRename, setProjectRename] = useState<Project | null>(null);
+  const [projectDelete, setProjectDelete] = useState<Project | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const [localImportData, setLocalImportData] = useState<LocalRoadmapData | null>(null);
 
-  const windowRange = `${format(window.start, "MMM d, yyyy")} - ${format(window.end, "MMM d, yyyy")}`;
+  const windowRange = `${format(window.start, "MMM d, yyyy")} - ${format(window.activeEnd, "MMM d, yyyy")}`;
+  const activeProject = projects.find((project) => project.id === activeProjectId) ?? null;
+  const isSaving = status === "saving";
+  const isCloudMode = mode === "cloud";
+
+  useEffect(() => {
+    if (
+      !user ||
+      status !== "ready" ||
+      projects.length > 0 ||
+      hasProvisionedInitialProject.current
+    ) {
+      return;
+    }
+
+    hasProvisionedInitialProject.current = true;
+    const localData = readLocalRoadmapData();
+
+    if (localData && !hasImportDecision(user.id)) {
+      setLocalImportData(localData);
+      setImportOpen(true);
+      return;
+    }
+
+    saveImportDecision(user.id);
+    void createProject("Personal Roadmap");
+  }, [createProject, projects.length, status, user]);
 
   function navigateWindow(direction: -1 | 1) {
     setAnchor(toLocalISODate(shiftAnchor(anchorDate, scale, direction)));
@@ -64,14 +126,42 @@ export function Board() {
     navigateWindow(event.deltaX > 0 ? 1 : -1);
   }
 
+  function markImportDecision() {
+    if (!user) return;
+    saveImportDecision(user.id);
+  }
+
+  function handleImportLocalData() {
+    if (!localImportData) return;
+    markImportDecision();
+    setImportOpen(false);
+    void importLocalRoadmap(localImportData, "Personal Roadmap");
+  }
+
+  function handleStartBlank() {
+    markImportDecision();
+    setImportOpen(false);
+    void createProject("Personal Roadmap");
+  }
+
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-foreground">
       <div className="flex min-h-0 w-full flex-col">
         <BoardHeader
+          projects={projects}
+          activeProjectId={activeProjectId}
+          user={user}
           windowLabel={window.label}
           windowRange={windowRange}
           scale={scale}
           canCreateMilestone={orderedSections.length > 0}
+          isSaving={isSaving}
+          onSelectProject={(projectId) => void setActiveProject(projectId)}
+          onNewProject={() => setProjectAddOpen(true)}
+          onRenameProject={() => activeProject && setProjectRename(activeProject)}
+          onDeleteProject={() => activeProject && setProjectDelete(activeProject)}
+          onSignIn={() => void signInWithGoogle()}
+          onSignOut={() => void signOut()}
           onScaleChange={setScale}
           onPrevious={() => navigateWindow(-1)}
           onNext={() => navigateWindow(1)}
@@ -80,7 +170,25 @@ export function Board() {
         />
 
         <main className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 p-3 lg:p-4">
-          {orderedSections.length === 0 ? (
+          {status === "loading" && isCloudMode ? (
+            <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-muted-foreground">
+              Loading roadmap...
+            </div>
+          ) : !activeProjectId && isCloudMode ? (
+            <div className="flex min-h-0 flex-1 items-center justify-center">
+              <div className="rounded-lg border border-border bg-card p-6 text-center shadow-sm">
+                <div className="font-display text-lg font-medium text-primary">
+                  Create a project
+                </div>
+                <p className="mt-2 max-w-sm text-sm text-muted-foreground">
+                  Projects keep separate personal roadmaps under the same account.
+                </p>
+                <Button className="mt-5" onClick={() => setProjectAddOpen(true)}>
+                  New project
+                </Button>
+              </div>
+            </div>
+          ) : orderedSections.length === 0 ? (
             <div className="flex min-h-0 flex-1 items-center justify-center">
               <EmptyBoard onAddSection={() => setSectionAddOpen(true)} />
             </div>
@@ -139,6 +247,50 @@ export function Board() {
           )}
         </main>
 
+        {error && (
+          <div className="pointer-events-none fixed bottom-4 left-1/2 z-50 -translate-x-1/2 rounded-md border border-destructive/30 bg-card px-3 py-2 text-xs text-destructive shadow-sm">
+            {error}
+          </div>
+        )}
+
+        <ImportLocalDialog
+          open={importOpen}
+          localData={localImportData}
+          onImport={handleImportLocalData}
+          onStartBlank={handleStartBlank}
+        />
+        <ProjectDialog
+          open={projectAddOpen}
+          onOpenChange={setProjectAddOpen}
+          title="New project"
+          confirmLabel="Create project"
+          onSubmit={(title) => {
+            if (isCloudMode) void createProject(title);
+            else void signInWithGoogle();
+          }}
+        />
+        <ProjectDialog
+          open={!!projectRename}
+          onOpenChange={(open) => !open && setProjectRename(null)}
+          title="Rename project"
+          confirmLabel="Save"
+          initialTitle={projectRename?.title}
+          onSubmit={(title) => {
+            if (projectRename) void renameProject(projectRename.id, title);
+          }}
+        />
+        <ConfirmDialog
+          open={!!projectDelete}
+          onOpenChange={(open) => !open && setProjectDelete(null)}
+          title={`Delete "${projectDelete?.title}"?`}
+          description="All sections and milestones in this project will be deleted. This cannot be undone."
+          confirmLabel="Delete project"
+          destructive
+          onConfirm={() => {
+            if (projectDelete) void deleteProject(projectDelete.id);
+            setProjectDelete(null);
+          }}
+        />
         <MilestoneDialog
           open={milestoneDialog.open}
           onOpenChange={(open) => setMilestoneDialog((state) => ({ ...state, open }))}
@@ -150,15 +302,18 @@ export function Board() {
           onOpenChange={setSectionAddOpen}
           title="New section"
           confirmLabel="Create section"
-          onSubmit={(name) => addSection(name)}
+          onSubmit={(name, color) => void addSection(name, color)}
         />
         <SectionDialog
           open={!!sectionRename}
           onOpenChange={(open) => !open && setSectionRename(null)}
-          title="Rename section"
+          title="Edit section"
           confirmLabel="Save"
           initialName={sectionRename?.title ?? ""}
-          onSubmit={(name) => sectionRename && renameSection(sectionRename.id, name)}
+          initialColor={sectionRename?.color}
+          onSubmit={(name, color) =>
+            sectionRename && void renameSection(sectionRename.id, name, color)
+          }
         />
         <ConfirmDialog
           open={!!sectionDelete}
@@ -168,7 +323,7 @@ export function Board() {
           confirmLabel="Delete section"
           destructive
           onConfirm={() => {
-            if (sectionDelete) deleteSection(sectionDelete.id);
+            if (sectionDelete) void deleteSection(sectionDelete.id);
             setSectionDelete(null);
           }}
         />

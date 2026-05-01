@@ -17,7 +17,8 @@ export function milestonesForSection(
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
-export function groupMilestones(items: Milestone[], window: TimeWindow, thresholdPct = 4.5) {
+export function groupMilestones(items: Milestone[], window: TimeWindow, thresholdPct?: number) {
+  const effectiveThreshold = thresholdPct ?? (window.scale === "year" ? 2.2 : 4.5);
   const sorted = [...items].sort((a, b) => a.date.localeCompare(b.date));
   const groups: { offsetPct: number; items: Milestone[] }[] = [];
 
@@ -25,7 +26,7 @@ export function groupMilestones(items: Milestone[], window: TimeWindow, threshol
     const offsetPct = dateOffsetPct(parseISO(milestone.date), window);
     const lastGroup = groups[groups.length - 1];
 
-    if (lastGroup && offsetPct - lastGroup.offsetPct < thresholdPct) {
+    if (lastGroup && offsetPct - lastGroup.offsetPct < effectiveThreshold) {
       lastGroup.items.push(milestone);
       lastGroup.offsetPct =
         (lastGroup.offsetPct * (lastGroup.items.length - 1) + offsetPct) / lastGroup.items.length;

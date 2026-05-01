@@ -1,13 +1,26 @@
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import type { Project, TimeScale } from "@/lib/roadmap-store";
+import { ProjectSwitcher } from "./ProjectSwitcher";
 
 type Props = {
+  projects: Project[];
+  activeProjectId: string | null;
+  user: User | null;
   windowLabel: string;
   windowRange: string;
-  scale: "month" | "quarter";
+  scale: TimeScale;
   canCreateMilestone: boolean;
-  onScaleChange: (scale: "month" | "quarter") => void;
+  isSaving: boolean;
+  onSelectProject: (projectId: string) => void;
+  onNewProject: () => void;
+  onRenameProject: () => void;
+  onDeleteProject: () => void;
+  onSignIn: () => void;
+  onSignOut: () => void;
+  onScaleChange: (scale: TimeScale) => void;
   onPrevious: () => void;
   onNext: () => void;
   onToday: () => void;
@@ -15,10 +28,20 @@ type Props = {
 };
 
 export function BoardHeader({
+  projects,
+  activeProjectId,
+  user,
   windowLabel,
   windowRange,
   scale,
   canCreateMilestone,
+  isSaving,
+  onSelectProject,
+  onNewProject,
+  onRenameProject,
+  onDeleteProject,
+  onSignIn,
+  onSignOut,
   onScaleChange,
   onPrevious,
   onNext,
@@ -33,6 +56,18 @@ export function BoardHeader({
             Roadmap
           </div>
           <div className="hidden h-5 w-px bg-border/80 sm:block" />
+          <ProjectSwitcher
+            user={user}
+            projects={projects}
+            activeProjectId={activeProjectId}
+            onSelectProject={onSelectProject}
+            onNewProject={onNewProject}
+            onRenameProject={onRenameProject}
+            onDeleteProject={onDeleteProject}
+            onSignIn={onSignIn}
+            onSignOut={onSignOut}
+          />
+          <div className="hidden h-5 w-px bg-border/80 lg:block" />
           <div className="flex min-w-0 items-center gap-1">
             <Button variant="ghost" size="icon" aria-label="Previous window" onClick={onPrevious}>
               <ChevronLeft className="h-4 w-4" />
@@ -48,6 +83,11 @@ export function BoardHeader({
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
+          {isSaving && (
+            <div className="hidden text-xs uppercase tracking-[0.14em] text-muted-foreground lg:block">
+              Saving
+            </div>
+          )}
           <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={onToday}>
             Today
           </Button>
@@ -63,16 +103,10 @@ export function BoardHeader({
   );
 }
 
-function ScaleToggle({
-  scale,
-  onChange,
-}: {
-  scale: "month" | "quarter";
-  onChange: (s: "month" | "quarter") => void;
-}) {
+function ScaleToggle({ scale, onChange }: { scale: TimeScale; onChange: (s: TimeScale) => void }) {
   return (
     <div className="inline-flex rounded-md border border-border bg-card p-0.5">
-      {(["month", "quarter"] as const).map((option) => (
+      {(["month", "quarter", "year"] as const).map((option) => (
         <button
           key={option}
           type="button"
