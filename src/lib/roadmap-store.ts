@@ -8,10 +8,48 @@ export type Project = {
   id: string;
   ownerId: string;
   title: string;
+  isShared?: boolean;
   createdAt?: string;
   updatedAt?: string;
   archivedAt?: string | null;
 };
+
+export type ProjectAccessRole = "editor";
+
+export type ProjectMember = {
+  id: string;
+  projectId: string;
+  userId: string;
+  email: string;
+  displayName?: string | null;
+  role: ProjectAccessRole;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type ProjectInvite = {
+  id: string;
+  projectId: string;
+  email: string;
+  role: ProjectAccessRole;
+  invitedBy: string;
+  acceptedAt?: string | null;
+  acceptedBy?: string | null;
+  expiresAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type InviteAcceptanceResult =
+  | {
+      status: "accepted";
+      projectId: string;
+      projectTitle: string;
+    }
+  | {
+      status: "expired" | "wrong-account" | "invalid" | "error";
+      message: string;
+    };
 
 export type Section = {
   id: string;
@@ -63,6 +101,7 @@ type RoadmapState = {
   createProject: (title: string) => Promise<Project | null>;
   renameProject: (id: string, title: string) => Promise<void>;
   deleteProject: (id: string) => Promise<void>;
+  leaveProject: (projectId: string) => Promise<void>;
 
   addSection: (title: string, color?: SectionColorId) => Promise<void>;
   renameSection: (id: string, title: string, color?: SectionColorId) => Promise<void>;
@@ -75,6 +114,15 @@ type RoadmapState = {
     patch: Partial<Omit<Milestone, "id" | "projectId">>,
   ) => Promise<void>;
   deleteMilestone: (id: string) => Promise<void>;
+  listProjectMembers: (projectId: string) => Promise<ProjectMember[]>;
+  listProjectInvites: (projectId: string) => Promise<ProjectInvite[]>;
+  createProjectInvite: (
+    projectId: string,
+    email: string,
+  ) => Promise<{ inviteId: string; token: string; email: string; expiresAt: string } | null>;
+  revokeProjectInvite: (inviteId: string) => Promise<void>;
+  removeProjectMember: (projectId: string, userId: string) => Promise<void>;
+  acceptProjectInvite: (token: string) => Promise<InviteAcceptanceResult>;
   importLocalRoadmap: (data: LocalRoadmapData, projectTitle?: string) => Promise<void>;
 };
 
@@ -92,6 +140,30 @@ type ProjectRow = {
   created_at?: string;
   updated_at?: string;
   archived_at?: string | null;
+};
+
+type ProjectMemberRow = {
+  id: string;
+  project_id: string;
+  user_id: string;
+  email: string;
+  display_name?: string | null;
+  role: ProjectAccessRole;
+  created_at?: string;
+  updated_at?: string;
+};
+
+type ProjectInviteRow = {
+  id: string;
+  project_id: string;
+  email: string;
+  role: ProjectAccessRole;
+  invited_by: string;
+  accepted_at?: string | null;
+  accepted_by?: string | null;
+  expires_at: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 type SectionRow = {
@@ -153,9 +225,38 @@ function toProject(row: ProjectRow): Project {
     id: row.id,
     ownerId: row.owner_id,
     title: row.title,
+    isShared: false,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     archivedAt: row.archived_at,
+  };
+}
+
+function toProjectMember(row: ProjectMemberRow): ProjectMember {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    userId: row.user_id,
+    email: row.email,
+    displayName: row.display_name,
+    role: row.role,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function toProjectInvite(row: ProjectInviteRow): ProjectInvite {
+  return {
+    id: row.id,
+    projectId: row.project_id,
+    email: row.email,
+    role: row.role,
+    invitedBy: row.invited_by,
+    acceptedAt: row.accepted_at,
+    acceptedBy: row.accepted_by,
+    expiresAt: row.expires_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
   };
 }
 
@@ -219,6 +320,7 @@ function getLocalProject(): Project {
     id: LOCAL_PROJECT_ID,
     ownerId: "local",
     title: "Local Roadmap",
+    isShared: false,
   };
 }
 
@@ -267,15 +369,56 @@ function toLocalMilestones(data: LocalRoadmapData): Milestone[] {
   }));
 }
 
-async function fetchProjects() {
+async function fetchProjects(userId: string) {
+  const supabase = requireSupabase();
+  const [{ data, error }, membersResult] = await Promise.all([
+    supabase
+      .from("projects")
+      .select("id, owner_id, title, created_at, updated_at, archived_at")
+      .is("archived_at", null)
+      .order("created_at", { ascending: true }),
+    supabase.from("project_members").select("project_id"),
+  ]);
+
+  if (error) throw error;
+  if (membersResult.error) throw membersResult.error;
+
+  const sharedProjectIds = new Set<string>(
+    (membersResult.data ?? []).map((row) => (row as { project_id: string }).project_id),
+  );
+
+  return (data ?? []).map((row) => {
+    const project = toProject(row as ProjectRow);
+    return {
+      ...project,
+      isShared: project.ownerId !== userId || sharedProjectIds.has(project.id),
+    };
+  });
+}
+
+async function fetchProjectMembers(projectId: string) {
   const { data, error } = await requireSupabase()
-    .from("projects")
-    .select("id, owner_id, title, created_at, updated_at, archived_at")
-    .is("archived_at", null)
+    .from("project_members")
+    .select("id, project_id, user_id, email, display_name, role, created_at, updated_at")
+    .eq("project_id", projectId)
     .order("created_at", { ascending: true });
 
   if (error) throw error;
-  return (data ?? []).map((row) => toProject(row as ProjectRow));
+  return (data ?? []).map((row) => toProjectMember(row as ProjectMemberRow));
+}
+
+async function fetchProjectInvites(projectId: string) {
+  const { data, error } = await requireSupabase()
+    .from("project_invites")
+    .select(
+      "id, project_id, email, role, invited_by, accepted_at, accepted_by, expires_at, created_at, updated_at",
+    )
+    .eq("project_id", projectId)
+    .is("accepted_at", null)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []).map((row) => toProjectInvite(row as ProjectInviteRow));
 }
 
 async function fetchProjectData(projectId: string) {
@@ -417,20 +560,25 @@ export function getImportDecisionKey(userId: string) {
   return `roadmap:import-decision:${userId}`;
 }
 
-async function loadActiveProject(userId: string, projects: Project[]) {
+async function loadCloudState(userId: string, preferredProjectId?: string | null) {
   const selectedId =
     typeof window !== "undefined"
       ? window.localStorage.getItem(getSelectedProjectStorageKey(userId))
       : null;
-  const activeProject =
-    projects.find((project) => project.id === selectedId) ?? projects[0] ?? null;
 
-  if (!activeProject) {
-    return { activeProjectId: null, sections: [], milestones: [] };
+  const projects = await fetchProjects(userId);
+  const nextActiveProject =
+    projects.find((project) => project.id === preferredProjectId) ??
+    projects.find((project) => project.id === selectedId) ??
+    projects[0] ??
+    null;
+
+  if (!nextActiveProject) {
+    return { projects, activeProjectId: null, sections: [], milestones: [] };
   }
 
-  const data = await fetchProjectData(activeProject.id);
-  return { activeProjectId: activeProject.id, ...data };
+  const data = await fetchProjectData(nextActiveProject.id);
+  return { projects, activeProjectId: nextActiveProject.id, ...data };
 }
 
 function setStoreError(set: (state: Partial<RoadmapState>) => void, error: unknown) {
@@ -438,6 +586,30 @@ function setStoreError(set: (state: Partial<RoadmapState>) => void, error: unkno
     status: "error",
     error: error instanceof Error ? error.message : "Unexpected roadmap error.",
   });
+}
+
+function classifyInviteAcceptanceError(error: unknown): InviteAcceptanceResult {
+  const message = error instanceof Error ? error.message : "Unexpected invite error.";
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("expired") || normalized.includes("not found")) {
+    return {
+      status: "expired",
+      message: "This invite has expired or is no longer valid.",
+    };
+  }
+
+  if (normalized.includes("different email")) {
+    return {
+      status: "wrong-account",
+      message: "This invite was sent to a different email address.",
+    };
+  }
+
+  return {
+    status: "invalid",
+    message: message || "This invite could not be accepted.",
+  };
 }
 
 export const useRoadmap = create<RoadmapState>()((set, get) => ({
@@ -460,9 +632,8 @@ export const useRoadmap = create<RoadmapState>()((set, get) => ({
     set({ mode: "cloud", status: "loading", error: null, initializedUserId: userId });
 
     try {
-      const projects = await fetchProjects();
-      const activeData = await loadActiveProject(userId, projects);
-      set({ projects, ...activeData, status: "ready", error: null });
+      const activeData = await loadCloudState(userId);
+      set({ ...activeData, status: "ready", error: null });
     } catch (error) {
       setStoreError(set, error);
     }
@@ -511,14 +682,15 @@ export const useRoadmap = create<RoadmapState>()((set, get) => ({
     if (get().mode === "local") return;
 
     const { initializedUserId } = get();
+    if (!initializedUserId) return;
     set({ status: "loading", error: null });
 
     try {
-      const data = await fetchProjectData(projectId);
+      const data = await loadCloudState(initializedUserId, projectId);
       if (initializedUserId && typeof window !== "undefined") {
         window.localStorage.setItem(getSelectedProjectStorageKey(initializedUserId), projectId);
       }
-      set({ activeProjectId: projectId, ...data, status: "ready", error: null });
+      set({ ...data, status: "ready", error: null });
     } catch (error) {
       setStoreError(set, error);
     }
@@ -534,8 +706,10 @@ export const useRoadmap = create<RoadmapState>()((set, get) => ({
 
     try {
       const project = await createCloudProject(title);
-      const projects = [...get().projects, project];
-      set({ projects, activeProjectId: project.id, sections: [], milestones: [], status: "ready" });
+      const initializedUserId = get().initializedUserId;
+      if (!initializedUserId) throw new Error("Cloud roadmap is not initialized.");
+      const activeState = await loadCloudState(initializedUserId, project.id);
+      set({ ...activeState, status: "ready", error: null });
       return project;
     } catch (error) {
       setStoreError(set, error);
@@ -778,18 +952,122 @@ export const useRoadmap = create<RoadmapState>()((set, get) => ({
     }
   },
 
+  listProjectMembers: async (projectId) => {
+    try {
+      return await fetchProjectMembers(projectId);
+    } catch (error) {
+      setStoreError(set, error);
+      return [];
+    }
+  },
+
+  listProjectInvites: async (projectId) => {
+    try {
+      return await fetchProjectInvites(projectId);
+    } catch (error) {
+      setStoreError(set, error);
+      return [];
+    }
+  },
+
+  createProjectInvite: async (projectId, email) => {
+    try {
+      const { data, error } = await requireSupabase().rpc("create_project_invite", {
+        p_project_id: projectId,
+        p_email: email,
+        p_role: "editor",
+      });
+
+      if (error) throw error;
+      const invite = Array.isArray(data) ? data[0] : data;
+      if (!invite) return null;
+      return {
+        inviteId: (invite as { invite_id: string }).invite_id,
+        token: (invite as { token: string }).token,
+        email: (invite as { email: string }).email,
+        expiresAt: (invite as { expires_at: string }).expires_at,
+      };
+    } catch (error) {
+      setStoreError(set, error);
+      return null;
+    }
+  },
+
+  revokeProjectInvite: async (inviteId) => {
+    const previousStatus = get().status;
+    set({ status: "saving", error: null });
+
+    const { error } = await requireSupabase().from("project_invites").delete().eq("id", inviteId);
+    if (error) {
+      setStoreError(set, error);
+      return;
+    }
+
+    if (previousStatus !== "saving") set({ status: previousStatus });
+    const userId = get().initializedUserId;
+    if (userId) {
+      const activeState = await loadCloudState(userId, get().activeProjectId);
+      set({ ...activeState, status: "ready", error: null });
+    }
+  },
+
+  removeProjectMember: async (projectId, userId) => {
+    const { error } = await requireSupabase()
+      .from("project_members")
+      .delete()
+      .eq("project_id", projectId)
+      .eq("user_id", userId);
+    if (error) {
+      setStoreError(set, error);
+      return;
+    }
+
+    const currentUserId = get().initializedUserId;
+    if (currentUserId) {
+      const activeState = await loadCloudState(currentUserId, get().activeProjectId);
+      set({ ...activeState, status: "ready", error: null });
+    }
+  },
+
+  leaveProject: async (projectId) => {
+    const currentUserId = get().initializedUserId;
+    if (!currentUserId) return;
+    await get().removeProjectMember(projectId, currentUserId);
+  },
+
+  acceptProjectInvite: async (token) => {
+    try {
+      const { data, error } = await requireSupabase().rpc("accept_project_invite", {
+        p_token: token,
+      });
+      if (error) throw error;
+
+      const accepted = Array.isArray(data) ? data[0] : data;
+      const projectId = (accepted as { project_id: string }).project_id;
+      const projectTitle = (accepted as { project_title: string }).project_title;
+      const userId = get().initializedUserId;
+      if (userId) {
+        const activeState = await loadCloudState(userId, projectId);
+        set({ ...activeState, status: "ready", error: null });
+      }
+
+      return { status: "accepted", projectId, projectTitle };
+    } catch (error) {
+      return classifyInviteAcceptanceError(error);
+    }
+  },
+
   importLocalRoadmap: async (data, projectTitle = "Personal Roadmap") => {
     set({ status: "saving", error: null });
 
     try {
       const project = await createCloudProject(projectTitle);
       await seedProject(project.id, data);
-      const projects = await fetchProjects();
-      const activeData = await fetchProjectData(project.id);
+      const userId = get().initializedUserId;
+      if (!userId) throw new Error("Cloud roadmap is not initialized.");
+      const activeState = await loadCloudState(userId, project.id);
       set({
-        projects,
-        activeProjectId: project.id,
-        ...activeData,
+        ...activeState,
         scale: data.scale ?? get().scale,
         anchor: data.anchor ?? get().anchor,
         status: "ready",

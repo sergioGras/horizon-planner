@@ -2,8 +2,14 @@
 
 ## 2026-05-03
 
-- Switched the active task to the mobile version view.
-- Marked JSON export for round-tripping and AI-assisted generation as complete.
+- Improved invite acceptance UX with sign-in hints, acceptance banners, and clearer failure states.
+- Kept invite links usable across Google sign-in by preserving and clearing the invite token intentionally.
+- Marked the shared-project foundation, invite acceptance, and member management tasks as done.
+- Switched the active task back to the mobile version view.
+- Added an explicit Supabase grant migration for the shared project RPCs so `create_project_invite` and `accept_project_invite` are callable by authenticated users in production.
+- Fixed the shared-project RPCs to reference `pgcrypto` functions through the `extensions` schema so invite creation no longer fails on `gen_random_bytes`.
+- Fixed an ambiguous `email` reference in the shared-project invite RPC by qualifying returned `project_invites` columns.
+- Tightened the share-project dialog layout, added a dialog description for accessibility, and stacked invite/member rows more cleanly on narrow widths.
 
 ## 2026-05-01
 

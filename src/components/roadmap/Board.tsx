@@ -7,6 +7,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { EmptyBoard } from "./EmptyBoard";
 import { ImportLocalDialog } from "./ImportLocalDialog";
 import { MilestoneDialog } from "./MilestoneDialog";
+import { ShareProjectDialog } from "./ShareProjectDialog";
 import { RoadmapImportDialog } from "./RoadmapImportDialog";
 import { ProjectDialog } from "./ProjectDialog";
 import { SectionDialog } from "./SectionDialog";
@@ -59,6 +60,7 @@ export function Board() {
   const createProject = useRoadmap((state) => state.createProject);
   const renameProject = useRoadmap((state) => state.renameProject);
   const deleteProject = useRoadmap((state) => state.deleteProject);
+  const leaveProject = useRoadmap((state) => state.leaveProject);
   const addSection = useRoadmap((state) => state.addSection);
   const renameSection = useRoadmap((state) => state.renameSection);
   const deleteSection = useRoadmap((state) => state.deleteSection);
@@ -90,6 +92,7 @@ export function Board() {
   const [projectAddOpen, setProjectAddOpen] = useState(false);
   const [projectRename, setProjectRename] = useState<Project | null>(null);
   const [projectDelete, setProjectDelete] = useState<Project | null>(null);
+  const [shareProjectOpen, setShareProjectOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [localImportData, setLocalImportData] = useState<LocalRoadmapData | null>(null);
   const [roadmapImportOpen, setRoadmapImportOpen] = useState(false);
@@ -126,10 +129,6 @@ export function Board() {
     const node = boardViewportRef.current;
     if (!node) return;
 
-    const navigateWindow = (direction: -1 | 1) => {
-      setAnchor(toLocalISODate(shiftAnchor(anchorDate, scale, direction)));
-    };
-
     const handleWheel = (event: WheelEvent) => {
       const horizontalIntent = Math.abs(event.deltaX) > Math.abs(event.deltaY) * 1.2;
       if (!horizontalIntent || Math.abs(event.deltaX) < WHEEL_NAV_THRESHOLD) return;
@@ -140,7 +139,7 @@ export function Board() {
       if (now - lastWheelNavigationAt.current < WHEEL_NAV_COOLDOWN_MS) return;
 
       lastWheelNavigationAt.current = now;
-      navigateWindow(event.deltaX > 0 ? 1 : -1);
+      setAnchor(toLocalISODate(shiftAnchor(anchorDate, scale, event.deltaX > 0 ? 1 : -1)));
     };
 
     node.addEventListener("wheel", handleWheel, { passive: false });
@@ -184,8 +183,10 @@ export function Board() {
           isSaving={isSaving}
           onSelectProject={(projectId) => void setActiveProject(projectId)}
           onNewProject={() => setProjectAddOpen(true)}
+          onShareProject={() => activeProject && setShareProjectOpen(true)}
           onRenameProject={() => activeProject && setProjectRename(activeProject)}
           onDeleteProject={() => activeProject && setProjectDelete(activeProject)}
+          onLeaveProject={() => activeProject && void leaveProject(activeProject.id)}
           onSignIn={() => void signInWithGoogle()}
           onSignOut={() => void signOut()}
           onScaleChange={setScale}
@@ -337,6 +338,11 @@ export function Board() {
           onOpenChange={(open) => setMilestoneDialog((state) => ({ ...state, open }))}
           milestone={milestoneDialog.milestone}
           defaultSectionId={milestoneDialog.defaultSectionId}
+        />
+        <ShareProjectDialog
+          open={shareProjectOpen}
+          onOpenChange={setShareProjectOpen}
+          project={activeProject}
         />
         <SectionDialog
           open={sectionAddOpen}

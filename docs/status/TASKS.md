@@ -38,3 +38,6 @@
 - `[x]` Document the JSON schema for AI-generated roadmap files.
 - `[x]` Add drag-and-drop JSON import with validation and preview.
 - `[x]` Add JSON export for round-tripping and AI-assisted generation.
+- `[x]` Project sharing foundation.
+- `[x]` Invite and accept timeline project collaborators.
+- `[x]` Member management for shared projects.

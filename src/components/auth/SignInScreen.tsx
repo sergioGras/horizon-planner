@@ -3,6 +3,8 @@ import { useAuth, isSupabaseConfigured } from "@/lib/auth";
 
 export function SignInScreen() {
   const { signInWithGoogle, error } = useAuth();
+  const hasInvite =
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).has("invite");
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-background px-4 text-foreground">
@@ -12,20 +14,28 @@ export function SignInScreen() {
             Roadmap
           </div>
           <h1 className="font-display text-2xl font-semibold tracking-tight text-primary">
-            Sign in to your planning surface
+            {hasInvite ? "Join a shared timeline" : "Sign in to your planning surface"}
           </h1>
           <p className="text-sm leading-6 text-muted-foreground">
-            Persistent private roadmaps, personal projects, and milestone planning across the year.
+            {hasInvite
+              ? "Sign in with the invited account to join the shared project and continue editing."
+              : "Persistent private roadmaps, personal projects, and milestone planning across the year."}
           </p>
         </div>
 
         <div className="mt-6 space-y-3">
           <Button className="w-full" onClick={signInWithGoogle} disabled={!isSupabaseConfigured}>
-            Continue with Google
+            {hasInvite ? "Continue with Google and join" : "Continue with Google"}
           </Button>
           {!isSupabaseConfigured && (
             <p className="rounded-md border border-dashed border-border bg-secondary/35 px-3 py-2 text-xs text-muted-foreground">
               Supabase is not configured. Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`.
+            </p>
+          )}
+          {hasInvite && (
+            <p className="rounded-md border border-border bg-secondary/20 px-3 py-2 text-xs text-muted-foreground">
+              An invite link was found in the URL. After sign-in, the shared project will open
+              automatically.
             </p>
           )}
           {error && (

@@ -5,8 +5,10 @@ import {
   LogIn,
   LogOut,
   Pencil,
+  Share2,
   Trash2,
   UserCircle,
+  Users,
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
@@ -28,8 +30,10 @@ type Props = {
   compact?: boolean;
   onSelectProject: (projectId: string) => void;
   onNewProject: () => void;
+  onShareProject: () => void;
   onRenameProject: () => void;
   onDeleteProject: () => void;
+  onLeaveProject: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
 };
@@ -41,14 +45,17 @@ export function ProjectSwitcher({
   compact = false,
   onSelectProject,
   onNewProject,
+  onShareProject,
   onRenameProject,
   onDeleteProject,
+  onLeaveProject,
   onSignIn,
   onSignOut,
 }: Props) {
   const activeProject = projects.find((project) => project.id === activeProjectId);
   const profileLabel = getProfileLabel(user);
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
+  const canManageActiveProject = !!user && !!activeProject && activeProject.ownerId === user.id;
 
   return (
     <div className="flex min-w-0 items-center gap-2">
@@ -65,6 +72,11 @@ export function ProjectSwitcher({
               </span>
             )}
             <span className="truncate font-medium">{activeProject?.title ?? "Local Roadmap"}</span>
+            {activeProject?.isShared && (
+              <span className="rounded-full border border-border bg-secondary/70 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+                Shared
+              </span>
+            )}
             <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
@@ -85,14 +97,29 @@ export function ProjectSwitcher({
             <FolderPlus className="mr-2 h-4 w-4" />
             New project
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={onRenameProject} disabled={!activeProjectId || !user}>
-            <Pencil className="mr-2 h-4 w-4" />
-            Rename project
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={onDeleteProject} disabled={!activeProjectId || !user}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete project
-          </DropdownMenuItem>
+          {activeProject && (
+            <DropdownMenuItem onClick={onShareProject} disabled={!user}>
+              <Users className="mr-2 h-4 w-4" />
+              {canManageActiveProject ? "Share project" : "Project members"}
+            </DropdownMenuItem>
+          )}
+          {canManageActiveProject ? (
+            <>
+              <DropdownMenuItem onClick={onRenameProject} disabled={!activeProjectId || !user}>
+                <Pencil className="mr-2 h-4 w-4" />
+                Rename project
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onDeleteProject} disabled={!activeProjectId || !user}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete project
+              </DropdownMenuItem>
+            </>
+          ) : activeProject ? (
+            <DropdownMenuItem onClick={onLeaveProject} disabled={!user}>
+              <Share2 className="mr-2 h-4 w-4" />
+              Leave project
+            </DropdownMenuItem>
+          ) : null}
           {!user && (
             <>
               <DropdownMenuSeparator />

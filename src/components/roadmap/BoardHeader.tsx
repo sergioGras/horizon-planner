@@ -24,8 +24,10 @@ type Props = {
   isSaving: boolean;
   onSelectProject: (projectId: string) => void;
   onNewProject: () => void;
+  onShareProject: () => void;
   onRenameProject: () => void;
   onDeleteProject: () => void;
+  onLeaveProject: () => void;
   onSignIn: () => void;
   onSignOut: () => void;
   onScaleChange: (scale: TimeScale) => void;
@@ -47,8 +49,10 @@ export function BoardHeader({
   isSaving,
   onSelectProject,
   onNewProject,
+  onShareProject,
   onRenameProject,
   onDeleteProject,
+  onLeaveProject,
   onSignIn,
   onSignOut,
   onScaleChange,
@@ -80,8 +84,10 @@ export function BoardHeader({
             compact={isMobile}
             onSelectProject={onSelectProject}
             onNewProject={onNewProject}
+            onShareProject={onShareProject}
             onRenameProject={onRenameProject}
             onDeleteProject={onDeleteProject}
+            onLeaveProject={onLeaveProject}
             onSignIn={onSignIn}
             onSignOut={onSignOut}
           />

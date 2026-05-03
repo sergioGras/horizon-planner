@@ -10,6 +10,7 @@
 ## Current Focus
 
 - Mobile version view with compact header controls and intentional phone scrolling.
+- Shared project collaboration is in place with invite-only acceptance and member management.
 - JSON export for round-tripping and AI-assisted generation is available.
 - AI-native roadmap JSON format is defined in a versioned spec.
 - Generic onboarding seed now comes from the canonical roadmap template.
