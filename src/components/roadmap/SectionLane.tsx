@@ -21,6 +21,7 @@ type Props = {
   window: TimeWindow;
   milestones: Milestone[];
   density: "comfortable" | "compact" | "dense";
+  isMobile?: boolean;
   sectionIndex: number;
   sectionCount: number;
   onAddMilestone: (sectionId: string) => void;
@@ -35,6 +36,7 @@ export function SectionLane({
   window,
   milestones,
   density,
+  isMobile = false,
   sectionIndex,
   sectionCount,
   onAddMilestone,
@@ -57,15 +59,19 @@ export function SectionLane({
     <div
       style={colorStyle}
       className={cn(
-        "group grid min-h-0 flex-1 grid-cols-[184px_minmax(0,1fr)] border-b border-border/60 transition-colors last:border-b-0 hover:bg-secondary/20 md:grid-cols-[232px_minmax(0,1fr)]",
+        "group grid min-h-0 flex-1 border-b border-border/60 transition-colors last:border-b-0 hover:bg-secondary/20",
+        isMobile
+          ? "grid-cols-[146px_minmax(0,1fr)]"
+          : "grid-cols-[184px_minmax(0,1fr)] md:grid-cols-[232px_minmax(0,1fr)]",
       )}
     >
       <div
         className={cn(
-          "relative flex min-h-0 border-r border-border/60 bg-card px-3 md:px-5",
-          density === "comfortable" && "flex-col justify-between gap-2 py-3",
-          density === "compact" && "flex-col justify-between gap-1 py-2",
-          density === "dense" && "flex-row items-center justify-between gap-2 py-1",
+          "relative flex min-h-0 border-r border-border/60 bg-card",
+          isMobile ? "px-2.5 py-2" : "px-3 md:px-5",
+          density === "comfortable" && !isMobile && "flex-col justify-between gap-2 py-3",
+          density === "compact" && !isMobile && "flex-col justify-between gap-1 py-2",
+          (density === "dense" || isMobile) && "flex-row items-center justify-between gap-2 py-1.5",
         )}
       >
         <div
@@ -78,11 +84,11 @@ export function SectionLane({
               className="h-2.5 w-2.5 shrink-0 rounded-full border border-black/5"
               style={{ backgroundColor: sectionColor.swatch }}
             />
-            <div className="truncate font-display text-[13px] font-medium text-primary md:text-[15px]">
+            <div className="truncate font-display text-[12px] font-medium text-primary md:text-[15px]">
               {section.title}
             </div>
           </div>
-          {density !== "dense" && (
+          {density !== "dense" && !isMobile && (
             <div className="truncate text-[11px] text-muted-foreground">
               {totalCount} milestones
             </div>
@@ -92,16 +98,16 @@ export function SectionLane({
         <div className="flex shrink-0 items-center justify-between gap-1 md:gap-2">
           <Button
             variant="ghost"
-            size={density === "dense" ? "icon" : "sm"}
+            size={density === "dense" || isMobile ? "icon" : "sm"}
             className={cn(
               "h-7 text-muted-foreground hover:text-primary",
-              density === "dense" ? "w-7" : "px-2",
+              density === "dense" || isMobile ? "w-7" : "px-2",
             )}
             onClick={() => onAddMilestone(section.id)}
             aria-label={`Add milestone to ${section.title}`}
           >
             <Plus className="h-4 w-4" />
-            {density !== "dense" && "Add"}
+            {density !== "dense" && !isMobile && "Add"}
           </Button>
 
           <DropdownMenu>
@@ -156,8 +162,8 @@ export function SectionLane({
           onOpen={onOpenMilestone}
         />
         {inWindow.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center px-4 text-center">
-            <div className="rounded-md border border-dashed border-border bg-card/80 px-3 py-1.5 text-xs text-muted-foreground">
+          <div className="absolute inset-0 flex items-center justify-center px-3 text-center">
+            <div className="rounded-md border border-dashed border-border bg-card/80 px-3 py-1 text-[11px] text-muted-foreground">
               No milestones
             </div>
           </div>

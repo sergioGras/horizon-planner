@@ -9,7 +9,8 @@
 
 ## Current Focus
 
-- JSON export for round-tripping and AI-assisted generation.
+- Mobile version view with compact header controls and intentional phone scrolling.
+- JSON export for round-tripping and AI-assisted generation is available.
 - AI-native roadmap JSON format is defined in a versioned spec.
 - Generic onboarding seed now comes from the canonical roadmap template.
 - Import dialog exposes downloadable AI skill and sample JSON for first-time users.

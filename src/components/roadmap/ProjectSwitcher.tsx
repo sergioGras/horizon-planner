@@ -19,11 +19,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Project } from "@/lib/roadmap-store";
+import { cn } from "@/lib/utils";
 
 type Props = {
   user: User | null;
   projects: Project[];
   activeProjectId: string | null;
+  compact?: boolean;
   onSelectProject: (projectId: string) => void;
   onNewProject: () => void;
   onRenameProject: () => void;
@@ -36,6 +38,7 @@ export function ProjectSwitcher({
   user,
   projects,
   activeProjectId,
+  compact = false,
   onSelectProject,
   onNewProject,
   onRenameProject,
@@ -51,15 +54,21 @@ export function ProjectSwitcher({
     <div className="flex min-w-0 items-center gap-2">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="max-w-[220px] gap-1 px-2">
-            <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-              Timeline
-            </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn("gap-1 px-2", compact ? "max-w-[176px]" : "max-w-[220px]")}
+          >
+            {!compact && (
+              <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
+                Timeline
+              </span>
+            )}
             <span className="truncate font-medium">{activeProject?.title ?? "Local Roadmap"}</span>
             <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-64">
+        <DropdownMenuContent align="start" className={cn("w-64", compact && "w-56")}>
           <DropdownMenuLabel className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
             Timeline projects
           </DropdownMenuLabel>
@@ -111,7 +120,7 @@ export function ProjectSwitcher({
             )}
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuContent align="end" className={cn("w-64", compact && "w-56")}>
           <DropdownMenuLabel>
             <div className="truncate text-sm font-medium text-primary">{profileLabel}</div>
             <div className="truncate text-xs font-normal text-muted-foreground">

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2026-05-03
+
+- Switched the active task to the mobile version view.
+- Marked JSON export for round-tripping and AI-assisted generation as complete.
+
 ## 2026-05-01
 
 - Made login optional while keeping cloud-backed authenticated projects.

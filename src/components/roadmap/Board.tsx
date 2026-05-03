@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type WheelEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { format } from "date-fns";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,8 @@ import { importedRoadmapToLocalShape, type ImportedRoadmapData } from "@/lib/roa
 import { orderSections } from "@/lib/roadmap-view";
 import { getWindow, shiftAnchor } from "@/lib/timeline";
 import { fromLocalISODate, toLocalISODate, todayISO } from "@/lib/date-utils";
+import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const WHEEL_NAV_THRESHOLD = 36;
 const WHEEL_NAV_COOLDOWN_MS = 650;
@@ -41,6 +43,7 @@ function saveImportDecision(userId: string) {
 
 export function Board() {
   const { user, signInWithGoogle, signOut } = useAuth();
+  const isMobile = useIsMobile();
   const mode = useRoadmap((state) => state.mode);
   const projects = useRoadmap((state) => state.projects);
   const activeProjectId = useRoadmap((state) => state.activeProjectId);
@@ -66,9 +69,15 @@ export function Board() {
   const anchorDate = useMemo(() => fromLocalISODate(anchor), [anchor]);
   const window = useMemo(() => getWindow(anchorDate, scale), [anchorDate, scale]);
   const lastWheelNavigationAt = useRef(0);
+  const boardViewportRef = useRef<HTMLDivElement>(null);
   const hasProvisionedInitialProject = useRef(false);
-  const laneDensity =
-    orderedSections.length > 12 ? "dense" : orderedSections.length > 8 ? "compact" : "comfortable";
+  const laneDensity = isMobile
+    ? "dense"
+    : orderedSections.length > 12
+      ? "dense"
+      : orderedSections.length > 8
+        ? "compact"
+        : "comfortable";
 
   const [milestoneDialog, setMilestoneDialog] = useState<{
     open: boolean;
@@ -113,22 +122,30 @@ export function Board() {
     void importLocalRoadmap(getSeedRoadmapData(), "Roadmap");
   }, [importLocalRoadmap, projects.length, status, user]);
 
-  function navigateWindow(direction: -1 | 1) {
-    setAnchor(toLocalISODate(shiftAnchor(anchorDate, scale, direction)));
-  }
+  useEffect(() => {
+    const node = boardViewportRef.current;
+    if (!node) return;
 
-  function handleWheel(event: WheelEvent<HTMLDivElement>) {
-    const horizontalIntent = Math.abs(event.deltaX) > Math.abs(event.deltaY) * 1.2;
-    if (!horizontalIntent || Math.abs(event.deltaX) < WHEEL_NAV_THRESHOLD) return;
+    const navigateWindow = (direction: -1 | 1) => {
+      setAnchor(toLocalISODate(shiftAnchor(anchorDate, scale, direction)));
+    };
 
-    event.preventDefault();
+    const handleWheel = (event: WheelEvent) => {
+      const horizontalIntent = Math.abs(event.deltaX) > Math.abs(event.deltaY) * 1.2;
+      if (!horizontalIntent || Math.abs(event.deltaX) < WHEEL_NAV_THRESHOLD) return;
 
-    const now = Date.now();
-    if (now - lastWheelNavigationAt.current < WHEEL_NAV_COOLDOWN_MS) return;
+      event.preventDefault();
 
-    lastWheelNavigationAt.current = now;
-    navigateWindow(event.deltaX > 0 ? 1 : -1);
-  }
+      const now = Date.now();
+      if (now - lastWheelNavigationAt.current < WHEEL_NAV_COOLDOWN_MS) return;
+
+      lastWheelNavigationAt.current = now;
+      navigateWindow(event.deltaX > 0 ? 1 : -1);
+    };
+
+    node.addEventListener("wheel", handleWheel, { passive: false });
+    return () => node.removeEventListener("wheel", handleWheel);
+  }, [anchorDate, scale, setAnchor]);
 
   function markImportDecision() {
     if (!user) return;
@@ -179,7 +196,13 @@ export function Board() {
           onAddMilestone={() => setMilestoneDialog({ open: true })}
         />
 
-        <main className="mx-auto flex min-h-0 w-full max-w-[1600px] flex-1 p-3 lg:p-4">
+        <main
+          ref={boardViewportRef}
+          className={cn(
+            "mx-auto flex min-h-0 w-full max-w-[1600px] flex-1",
+            isMobile ? "overflow-x-auto overflow-y-hidden px-2 py-2" : "p-3 lg:p-4",
+          )}
+        >
           {status === "loading" && isCloudMode ? (
             <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-muted-foreground">
               Loading roadmap...
@@ -204,8 +227,10 @@ export function Board() {
             </div>
           ) : (
             <div
-              className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm"
-              onWheel={handleWheel}
+              className={cn(
+                "flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/70 bg-card shadow-sm",
+                isMobile && "min-w-[760px]",
+              )}
             >
               <div className="grid h-11 shrink-0 grid-cols-[184px_minmax(0,1fr)] border-b border-border/70 bg-secondary/35 md:grid-cols-[232px_minmax(0,1fr)]">
                 <div className="border-r border-border/60 px-3 py-3 text-[11px] uppercase tracking-[0.16em] text-muted-foreground md:px-5">
@@ -225,6 +250,7 @@ export function Board() {
                       window={window}
                       milestones={milestones}
                       density={laneDensity}
+                      isMobile={isMobile}
                       sectionIndex={index}
                       sectionCount={orderedSections.length}
                       onAddMilestone={(sectionId) =>

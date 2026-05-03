@@ -19,11 +19,12 @@
 
 ## Active task
 
-- `[~]` Add JSON export for round-tripping and AI-assisted generation.
+- `[~]` Create mobile version view.
 
 ## Pending tasks
 
-- `[ ]` Add PDF export using a print-friendly roadmap layout.
+- [ ] Add JSON export for round-tripping and AI-assisted generation.
+- [ ] Add PDF export using a print-friendly roadmap layout.
 - [ ] Add image export for a static snapshot of the current board window.
 - [ ] Add calendar export as `.ics` for Google Calendar import.
 - [ ] Add a sample roadmap JSON template users can copy.
@@ -36,3 +37,4 @@
 - `[x]` Define a versioned AI-native roadmap JSON format.
 - `[x]` Document the JSON schema for AI-generated roadmap files.
 - `[x]` Add drag-and-drop JSON import with validation and preview.
+- `[x]` Add JSON export for round-tripping and AI-assisted generation.
