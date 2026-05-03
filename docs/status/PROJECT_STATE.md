@@ -9,8 +9,10 @@
 
 ## Current Focus
 
-- Drag-and-drop JSON import with validation and preview.
+- JSON export for round-tripping and AI-assisted generation.
 - AI-native roadmap JSON format is defined in a versioned spec.
+- Generic onboarding seed now comes from the canonical roadmap template.
+- Import dialog exposes downloadable AI skill and sample JSON for first-time users.
 
 ## Constraints
 

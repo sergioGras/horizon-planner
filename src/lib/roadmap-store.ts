@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { toLocalISODate, todayISO } from "./date-utils";
 import { DEFAULT_SECTION_COLOR, SECTION_COLORS, type SectionColorId } from "./section-colors";
+import { createGenericRoadmapSeed } from "./roadmap-json";
 import { requireSupabase } from "./supabase";
 
 export type Project = {
@@ -118,144 +119,7 @@ const uid = () =>
 
 const iso = (d: Date) => toLocalISODate(d);
 
-const sectionTitles = [
-  "TreePlet Core",
-  "Learning",
-  "Personal Strategic",
-  "Optional / Sandbox",
-] as const;
-
-const seedSections: Array<Pick<Section, "id" | "title" | "order" | "color">> = [
-  { id: "s-core", title: sectionTitles[0], order: 0, color: "sage" },
-  { id: "s-learning", title: sectionTitles[1], order: 1, color: "sky" },
-  { id: "s-personal", title: sectionTitles[2], order: 2, color: "clay" },
-  { id: "s-optional", title: sectionTitles[3], order: 3, color: "lavender" },
-];
-
-const seedMilestones: Array<Omit<Milestone, "projectId">> = [
-  {
-    id: uid(),
-    title: "Connectivity Stabilization",
-    description:
-      "MQTT communication, certificates, reliable ingestion pipeline, and device connectivity stability.",
-    sectionId: "s-core",
-    date: "2026-05-31",
-    type: "commitment",
-  },
-  {
-    id: uid(),
-    title: "Backend Integration Loop",
-    description: "Complete device to cloud to storage to validation loop.",
-    sectionId: "s-core",
-    date: "2026-06-30",
-    type: "commitment",
-  },
-  {
-    id: uid(),
-    title: "Full Device Loop Implementation",
-    description: "Sensor reading, transmission cycle, and recovery cycle functioning end to end.",
-    sectionId: "s-core",
-    date: "2026-07-31",
-    type: "commitment",
-  },
-  {
-    id: uid(),
-    title: "Autonomous Device Optimization",
-    description:
-      "Power optimization, deep sleep behavior, battery efficiency, and long-duration stability.",
-    sectionId: "s-core",
-    date: "2026-09-30",
-    type: "commitment",
-  },
-  {
-    id: uid(),
-    title: "Integrated Prototype Build",
-    description: "Hardware, enclosure, firmware, and backend integrated into a cohesive prototype.",
-    sectionId: "s-core",
-    date: "2026-11-15",
-    type: "commitment",
-  },
-  {
-    id: uid(),
-    title: "Pilot Preparation",
-    description: "Validation and operational hardening toward deploy-ready status.",
-    sectionId: "s-core",
-    date: "2026-12-20",
-    type: "commitment",
-  },
-  {
-    id: uid(),
-    title: "Karpathy AI (Transformers / GPT)",
-    description: "Complete videos, reproduce implementations, and build transformer intuition.",
-    sectionId: "s-learning",
-    date: "2026-06-15",
-    type: "commitment",
-  },
-  {
-    id: uid(),
-    title: "Circuits Fundamentals (Light)",
-    description: "Light but continuous exposure to electronics fundamentals.",
-    sectionId: "s-learning",
-    date: "2026-05-01",
-    type: "intention",
-  },
-  {
-    id: uid(),
-    title: "AWS Data Engineering Path",
-    description: "Skill Builder path, labs, and practical cloud data engineering exposure.",
-    sectionId: "s-learning",
-    date: "2026-09-30",
-    type: "commitment",
-  },
-  {
-    id: uid(),
-    title: "Learning Flex Slot",
-    description: "Adaptive learning allocation based on TreePlet bottlenecks or strategic gaps.",
-    sectionId: "s-learning",
-    date: "2026-10-01",
-    type: "intention",
-  },
-  {
-    id: uid(),
-    title: "DSA Practice (KPI)",
-    description: "Maintain algorithmic fluency through low-frequency but consistent practice.",
-    sectionId: "s-learning",
-    date: "2026-04-01",
-    type: "intention",
-  },
-  {
-    id: uid(),
-    title: "Housing & Car Exploration",
-    description: "Research options, define constraints, and clarify strategic preferences.",
-    sectionId: "s-personal",
-    date: "2026-06-30",
-    type: "intention",
-  },
-  {
-    id: uid(),
-    title: "Decision Modeling System",
-    description: "Build a lightweight scenario-analysis tool for strategic personal decisions.",
-    sectionId: "s-personal",
-    date: "2026-08-31",
-    type: "intention",
-  },
-  {
-    id: uid(),
-    title: "Financial & Scenario Analysis",
-    description: "Evaluate long-term affordability and strategic trade-offs across decisions.",
-    sectionId: "s-personal",
-    date: "2026-09-30",
-    type: "intention",
-  },
-  {
-    id: uid(),
-    title: "Decision Convergence",
-    description: "Converge toward a final strategic direction.",
-    sectionId: "s-personal",
-    date: "2026-12-31",
-    type: "intention",
-  },
-];
+const genericSeedData = createGenericRoadmapSeed();
 
 function normalizeScale(scale?: string): TimeScale {
   return scale === "month" || scale === "quarter" || scale === "year" ? scale : "quarter";
@@ -500,9 +364,9 @@ async function seedProject(projectId: string, data: LocalRoadmapData) {
 
 export function getSeedRoadmapData(): LocalRoadmapData {
   return {
-    sections: normalizeSections(seedSections),
-    milestones: seedMilestones.map(normalizeMilestone),
-    scale: "quarter",
+    sections: normalizeSections(genericSeedData.sections),
+    milestones: genericSeedData.milestones.map(normalizeMilestone),
+    scale: genericSeedData.scale ?? "quarter",
     anchor: todayISO(),
   };
 }

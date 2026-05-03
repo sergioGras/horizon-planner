@@ -19,15 +19,14 @@
 
 ## Active task
 
-- `[~]` Add drag-and-drop JSON import with validation and preview.
+- `[~]` Add JSON export for round-tripping and AI-assisted generation.
 
 ## Pending tasks
 
-- `[ ]` Add JSON export for round-tripping and AI-assisted generation.
 - `[ ]` Add PDF export using a print-friendly roadmap layout.
-- `[ ]` Add image export for a static snapshot of the current board window.
-- `[ ]` Add calendar export as `.ics` for Google Calendar import.
-- `[ ]` Add a sample roadmap JSON template users can copy.
+- [ ] Add image export for a static snapshot of the current board window.
+- [ ] Add calendar export as `.ics` for Google Calendar import.
+- [ ] Add a sample roadmap JSON template users can copy.
 
 ## Done
 
@@ -36,3 +35,4 @@
 - `[x]` Add milestone type visual encoding in the timeline chip.
 - `[x]` Define a versioned AI-native roadmap JSON format.
 - `[x]` Document the JSON schema for AI-generated roadmap files.
+- `[x]` Add drag-and-drop JSON import with validation and preview.

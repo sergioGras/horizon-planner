@@ -2,14 +2,14 @@
   "schema": "horizon-roadmap",
   "version": 1,
   "project": {
-    "title": "Personal Roadmap",
+    "title": "Roadmap",
     "scale": "quarter",
     "anchor": "2026-01-01"
   },
   "sections": [
     {
-      "key": "treeplet-core",
-      "title": "TreePlet Core",
+      "key": "core",
+      "title": "Core",
       "order": 0,
       "color": "sage"
     },
@@ -34,25 +34,32 @@
   ],
   "milestones": [
     {
-      "title": "Connectivity Stabilization",
-      "sectionKey": "treeplet-core",
-      "date": "2026-05-31",
+      "title": "Project kickoff",
+      "sectionKey": "core",
+      "date": "2026-02-15",
       "type": "commitment",
-      "description": "Device connectivity, certificates, and reliable ingestion pipeline."
+      "description": "Align scope, timeline, and the first delivery checkpoint."
     },
     {
-      "title": "Karpathy AI",
+      "title": "Learning cadence",
       "sectionKey": "learning",
       "date": "2026-06-15",
-      "type": "commitment",
-      "description": "Transformers, GPT architecture, and implementation intuition."
+      "type": "intention",
+      "description": "Keep a steady learning rhythm for skill growth."
     },
     {
-      "title": "Housing Exploration",
-      "sectionKey": "personal-strategic",
-      "date": "2026-06-30",
+      "title": "Personal planning checkpoint",
+      "sectionKey": "personal",
+      "date": "2026-08-31",
       "type": "intention",
-      "description": "Research housing and mobility options."
+      "description": "Check in on personal decisions and reduce ambiguity."
+    },
+    {
+      "title": "Sandbox exploration",
+      "sectionKey": "sandbox",
+      "date": "2026-10-15",
+      "type": "intention",
+      "description": "Leave room for opportunistic experiments and side ideas."
     }
   ]
 }

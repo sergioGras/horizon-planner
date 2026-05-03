@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, Upload } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,6 +24,7 @@ type Props = {
   onPrevious: () => void;
   onNext: () => void;
   onToday: () => void;
+  onImportRoadmap: () => void;
   onAddMilestone: () => void;
 };
 
@@ -46,6 +47,7 @@ export function BoardHeader({
   onPrevious,
   onNext,
   onToday,
+  onImportRoadmap,
   onAddMilestone,
 }: Props) {
   return (
@@ -90,6 +92,15 @@ export function BoardHeader({
           )}
           <Button variant="ghost" size="sm" className="text-muted-foreground" onClick={onToday}>
             Today
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground"
+            onClick={onImportRoadmap}
+          >
+            <Upload className="h-4 w-4" />
+            <span className="hidden sm:inline">Import</span>
           </Button>
           <ScaleToggle scale={scale} onChange={onScaleChange} />
           <Button onClick={onAddMilestone} className="rounded-md" disabled={!canCreateMilestone}>

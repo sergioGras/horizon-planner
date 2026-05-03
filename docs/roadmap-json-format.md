@@ -21,25 +21,25 @@ This is the canonical file format for AI-generated roadmap imports and roadmap e
   "schema": "horizon-roadmap",
   "version": 1,
   "project": {
-    "title": "Personal Roadmap",
+    "title": "Roadmap",
     "scale": "quarter",
     "anchor": "2026-01-01"
   },
   "sections": [
     {
-      "key": "treeplet-core",
-      "title": "TreePlet Core",
+      "key": "core",
+      "title": "Core",
       "order": 0,
       "color": "sage"
     }
   ],
   "milestones": [
     {
-      "title": "Connectivity Stabilization",
-      "sectionKey": "treeplet-core",
-      "date": "2026-05-31",
+      "title": "Project kickoff",
+      "sectionKey": "core",
+      "date": "2026-02-15",
       "type": "commitment",
-      "description": "Device connectivity, certificates, and ingestion pipeline."
+      "description": "Align scope, timeline, and the first delivery checkpoint."
     }
   ]
 }
@@ -57,11 +57,16 @@ This is the canonical file format for AI-generated roadmap imports and roadmap e
 
 ## AI Guidance
 
-- Prefer short stable keys like `treeplet-core`, `learning`, `personal-strategic`, and `sandbox`.
+- Prefer short stable keys like `core`, `learning`, `personal`, and `sandbox`.
 - Keep milestone titles concise.
 - Use `commitment` for high-confidence items.
 - Use `intention` for exploratory or directional items.
 - Do not include workflow tasks, dependencies, or daily todos.
+
+## AI Helper
+
+- Reusable skill: [`.agents/skills/horizon-roadmap-json/SKILL.md`](<c:/SERGIO/PILLARS OF LIFE (LOCAL)/KNOWLADGE HEALTH/PERSONAL PROJECTS/ENTREPENEUR/ROADMAP/horizon-planner/.agents/skills/horizon-roadmap-json/SKILL.md>)
+- Sample file: [`docs/samples/roadmap-template.json`](<c:/SERGIO/PILLARS OF LIFE (LOCAL)/KNOWLADGE HEALTH/PERSONAL PROJECTS/ENTREPENEUR/ROADMAP/horizon-planner/docs/samples/roadmap-template.json>)
 
 ## Import Behavior
 

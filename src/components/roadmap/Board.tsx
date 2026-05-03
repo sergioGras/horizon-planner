@@ -7,6 +7,7 @@ import { ConfirmDialog } from "./ConfirmDialog";
 import { EmptyBoard } from "./EmptyBoard";
 import { ImportLocalDialog } from "./ImportLocalDialog";
 import { MilestoneDialog } from "./MilestoneDialog";
+import { RoadmapImportDialog } from "./RoadmapImportDialog";
 import { ProjectDialog } from "./ProjectDialog";
 import { SectionDialog } from "./SectionDialog";
 import { SectionLane } from "./SectionLane";
@@ -14,6 +15,7 @@ import { TimelineAxis } from "./TimelineAxis";
 import { useAuth } from "@/lib/auth";
 import {
   getImportDecisionKey,
+  getSeedRoadmapData,
   readLocalRoadmapData,
   useRoadmap,
   type LocalRoadmapData,
@@ -21,6 +23,7 @@ import {
   type Project,
   type Section,
 } from "@/lib/roadmap-store";
+import { importedRoadmapToLocalShape, type ImportedRoadmapData } from "@/lib/roadmap-json";
 import { orderSections } from "@/lib/roadmap-view";
 import { getWindow, shiftAnchor } from "@/lib/timeline";
 import { fromLocalISODate, toLocalISODate, todayISO } from "@/lib/date-utils";
@@ -80,6 +83,7 @@ export function Board() {
   const [projectDelete, setProjectDelete] = useState<Project | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [localImportData, setLocalImportData] = useState<LocalRoadmapData | null>(null);
+  const [roadmapImportOpen, setRoadmapImportOpen] = useState(false);
 
   const windowRange = `${format(window.start, "MMM d, yyyy")} - ${format(window.activeEnd, "MMM d, yyyy")}`;
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? null;
@@ -106,8 +110,8 @@ export function Board() {
     }
 
     saveImportDecision(user.id);
-    void createProject("Personal Roadmap");
-  }, [createProject, projects.length, status, user]);
+    void importLocalRoadmap(getSeedRoadmapData(), "Roadmap");
+  }, [importLocalRoadmap, projects.length, status, user]);
 
   function navigateWindow(direction: -1 | 1) {
     setAnchor(toLocalISODate(shiftAnchor(anchorDate, scale, direction)));
@@ -144,6 +148,11 @@ export function Board() {
     void createProject("Personal Roadmap");
   }
 
+  function handleImportRoadmapFile(data: ImportedRoadmapData) {
+    const localShape = importedRoadmapToLocalShape(data);
+    void importLocalRoadmap(localShape, data.title?.trim() || "Personal Roadmap");
+  }
+
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-foreground">
       <div className="flex min-h-0 w-full flex-col">
@@ -166,6 +175,7 @@ export function Board() {
           onPrevious={() => navigateWindow(-1)}
           onNext={() => navigateWindow(1)}
           onToday={() => setAnchor(todayISO())}
+          onImportRoadmap={() => setRoadmapImportOpen(true)}
           onAddMilestone={() => setMilestoneDialog({ open: true })}
         />
 
@@ -258,6 +268,11 @@ export function Board() {
           localData={localImportData}
           onImport={handleImportLocalData}
           onStartBlank={handleStartBlank}
+        />
+        <RoadmapImportDialog
+          open={roadmapImportOpen}
+          onOpenChange={setRoadmapImportOpen}
+          onImport={handleImportRoadmapFile}
         />
         <ProjectDialog
           open={projectAddOpen}
