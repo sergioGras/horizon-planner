@@ -10,6 +10,8 @@
 - Fixed the shared-project RPCs to reference `pgcrypto` functions through the `extensions` schema so invite creation no longer fails on `gen_random_bytes`.
 - Fixed an ambiguous `email` reference in the shared-project invite RPC by qualifying returned `project_invites` columns.
 - Tightened the share-project dialog layout, added a dialog description for accessibility, and stacked invite/member rows more cleanly on narrow widths.
+- Fixed an ambiguous `project_id` reference in the invite acceptance RPC so invite links can be accepted without a 400 error.
+- Replaced the invite acceptance RPC conflict clause with the named unique constraint to avoid `project_id` output-column ambiguity during acceptance.
 
 ## 2026-05-01
 
