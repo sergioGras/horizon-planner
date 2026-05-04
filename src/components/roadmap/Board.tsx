@@ -102,6 +102,10 @@ export function Board() {
   const isSaving = status === "saving";
   const isCloudMode = mode === "cloud";
 
+  function navigateWindow(dir: -1 | 1) {
+    setAnchor(toLocalISODate(shiftAnchor(anchorDate, scale, dir)));
+  }
+
   useEffect(() => {
     if (
       !user ||
@@ -130,8 +134,13 @@ export function Board() {
     if (!node) return;
 
     const handleWheel = (event: WheelEvent) => {
-      const horizontalIntent = Math.abs(event.deltaX) > Math.abs(event.deltaY) * 1.2;
-      if (!horizontalIntent || Math.abs(event.deltaX) < WHEEL_NAV_THRESHOLD) return;
+      const horizontalDelta = Math.abs(event.deltaX);
+      const verticalDelta = Math.abs(event.deltaY);
+      const horizontalIntent =
+        horizontalDelta > verticalDelta * 1.2 ||
+        (event.shiftKey && verticalDelta > horizontalDelta);
+      const movement = horizontalDelta || verticalDelta;
+      if (!horizontalIntent || movement < WHEEL_NAV_THRESHOLD) return;
 
       event.preventDefault();
 
