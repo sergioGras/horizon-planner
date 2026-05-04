@@ -19,10 +19,12 @@
 
 ## Active task
 
-- `[~]` Create mobile version view.
+- `[~]` Add Spanish language support for the public app shell.
 
 ## Pending tasks
 
+- [ ] Translate core timeline labels, dialogs, and empty states to Spanish.
+- [ ] Add a language switcher and persist the preferred locale.
 - [ ] Add JSON export for round-tripping and AI-assisted generation.
 - [ ] Add PDF export using a print-friendly roadmap layout.
 - [ ] Add image export for a static snapshot of the current board window.
@@ -41,3 +43,4 @@
 - `[x]` Project sharing foundation.
 - `[x]` Invite and accept timeline project collaborators.
 - `[x]` Member management for shared projects.
+- `[x]` Refine responsive layout breakpoints.

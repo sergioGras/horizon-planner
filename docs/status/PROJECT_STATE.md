@@ -9,7 +9,8 @@
 
 ## Current Focus
 
-- Mobile version view with compact header controls and intentional phone scrolling.
+- Responsive layout breakpoint refinement is done; the header now collapses earlier and the board uses the full viewport width.
+- Spanish localization is now the next active workstream for the public app shell.
 - Shared project collaboration is in place with invite-only acceptance and member management.
 - JSON export for round-tripping and AI-assisted generation is available.
 - AI-native roadmap JSON format is defined in a versioned spec.

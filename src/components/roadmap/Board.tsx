@@ -209,8 +209,8 @@ export function Board() {
         <main
           ref={boardViewportRef}
           className={cn(
-            "mx-auto flex min-h-0 w-full max-w-[1600px] flex-1",
-            isMobile ? "overflow-x-auto overflow-y-hidden px-2 py-2" : "p-3 lg:p-4",
+            "flex min-h-0 w-full flex-1",
+            isMobile ? "overflow-x-auto overflow-y-hidden px-2 py-2" : "px-3 py-3 lg:px-4 lg:py-4",
           )}
         >
           {status === "loading" && isCloudMode ? (

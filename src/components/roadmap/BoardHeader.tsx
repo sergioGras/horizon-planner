@@ -8,9 +8,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useIsCompactLayout } from "@/hooks/use-compact-layout";
 import { cn } from "@/lib/utils";
 import type { Project, TimeScale } from "@/lib/roadmap-store";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { ProjectSwitcher } from "./ProjectSwitcher";
 
 type Props = {
@@ -62,26 +62,28 @@ export function BoardHeader({
   onImportRoadmap,
   onAddMilestone,
 }: Props) {
-  const isMobile = useIsMobile();
+  const isCompactLayout = useIsCompactLayout();
 
   return (
     <header className="shrink-0 border-b border-border/70 bg-background/90 backdrop-blur-sm">
       <div
         className={cn(
-          "mx-auto max-w-[1600px] px-3 py-2 lg:px-6",
-          isMobile ? "flex flex-col gap-2" : "flex h-14 items-center justify-between gap-3",
+          "w-full px-3 py-2 lg:px-4 xl:px-6 2xl:px-8",
+          isCompactLayout ? "flex flex-col gap-2" : "flex h-14 items-center justify-between gap-3",
         )}
       >
-        <div className={cn("flex min-w-0 items-center", isMobile ? "gap-2" : "gap-3")}>
+        <div className={cn("flex min-w-0 items-center", isCompactLayout ? "gap-2" : "gap-3")}>
           <div className="font-display text-sm font-medium uppercase tracking-[0.16em] text-primary">
             Roadmap
           </div>
-          <div className={cn("h-5 w-px bg-border/80", isMobile ? "hidden" : "hidden sm:block")} />
+          <div
+            className={cn("h-5 w-px bg-border/80", isCompactLayout ? "hidden" : "hidden sm:block")}
+          />
           <ProjectSwitcher
             user={user}
             projects={projects}
             activeProjectId={activeProjectId}
-            compact={isMobile}
+            compact={isCompactLayout}
             onSelectProject={onSelectProject}
             onNewProject={onNewProject}
             onShareProject={onShareProject}
@@ -94,31 +96,41 @@ export function BoardHeader({
         </div>
 
         <div
-          className={cn("flex min-w-0 items-center", isMobile ? "justify-between gap-2" : "gap-3")}
+          className={cn(
+            "flex min-w-0 items-center",
+            isCompactLayout ? "justify-between gap-2" : "gap-3",
+          )}
         >
           <div className="flex min-w-0 items-center gap-1">
             <Button variant="ghost" size="icon" aria-label="Previous window" onClick={onPrevious}>
               <ChevronLeft className="h-4 w-4" />
             </Button>
-            <div className="min-w-[116px] px-1 text-center font-display text-sm font-medium text-primary sm:min-w-[136px] md:min-w-[170px] md:text-base">
+            <div
+              className={cn(
+                "px-1 text-center font-display text-sm font-medium text-primary md:text-base",
+                isCompactLayout
+                  ? "min-w-[102px] sm:min-w-[128px]"
+                  : "min-w-[116px] sm:min-w-[136px] md:min-w-[170px]",
+              )}
+            >
               {windowLabel}
             </div>
             <Button variant="ghost" size="icon" aria-label="Next window" onClick={onNext}>
               <ChevronRight className="h-4 w-4" />
             </Button>
-            {!isMobile && (
+            {!isCompactLayout && (
               <div className="hidden text-xs text-muted-foreground md:block">{windowRange}</div>
             )}
           </div>
 
           <div className="flex shrink-0 items-center gap-2">
-            {isSaving && !isMobile && (
+            {isSaving && !isCompactLayout && (
               <div className="hidden text-xs uppercase tracking-[0.14em] text-muted-foreground lg:block">
                 Saving
               </div>
             )}
-            <ScaleToggle scale={scale} onChange={onScaleChange} compact={isMobile} />
-            {isMobile ? (
+            <ScaleToggle scale={scale} onChange={onScaleChange} compact={isCompactLayout} />
+            {isCompactLayout ? (
               <HeaderOverflowMenu
                 canCreateMilestone={canCreateMilestone}
                 onToday={onToday}
