@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2026-05-04
+
+- Added Spanish localization for the public app shell, including the sign-in screen, auth banner, header, board shell states, and not-found page.
+- Localized the core roadmap surface, dialogs, empty states, timeline labels, and date-scale labels into Spanish.
+- Added a persisted language switcher in the profile menu so users can lock the shell to English or Spanish.
+- Removed the stale project-switcher prop wiring and normalized the shared locale copy source.
+- Expanded the board viewport to use the full available width on large screens.
+
 ## 2026-05-03
 
 - Improved invite acceptance UX with sign-in hints, acceptance banners, and clearer failure states.

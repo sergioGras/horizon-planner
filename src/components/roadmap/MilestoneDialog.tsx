@@ -23,6 +23,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { useShellCopy } from "@/lib/app-locale";
 import { useRoadmap, type Milestone, type MilestoneType } from "@/lib/roadmap-store";
 import { toLocalISODate } from "@/lib/date-utils";
 import { ConfirmDialog } from "./ConfirmDialog";
@@ -30,11 +31,8 @@ import { ConfirmDialog } from "./ConfirmDialog";
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** when set, dialog is in edit mode */
   milestone?: Milestone;
-  /** initial section id when creating */
   defaultSectionId?: string;
-  /** initial date when creating */
   defaultDate?: string;
 };
 
@@ -45,6 +43,7 @@ export function MilestoneDialog({
   defaultSectionId,
   defaultDate,
 }: Props) {
+  const copy = useShellCopy();
   const sections = useRoadmap((s) => s.sections);
   const addMilestone = useRoadmap((s) => s.addMilestone);
   const updateMilestone = useRoadmap((s) => s.updateMilestone);
@@ -96,22 +95,22 @@ export function MilestoneDialog({
         <DialogContent className="sm:max-w-[520px] bg-card border-border">
           <DialogHeader>
             <DialogTitle className="font-display text-xl tracking-tight">
-              {milestone ? "Edit milestone" : "New milestone"}
+              {milestone ? copy.milestoneDialog.editTitle : copy.milestoneDialog.newTitle}
             </DialogTitle>
             <DialogDescription className="text-muted-foreground">
-              A point-in-time event on your roadmap.
+              {copy.milestoneDialog.description}
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-5 py-2">
             <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
+              <Label htmlFor="title">{copy.milestoneDialog.titleLabel}</Label>
               <Input
                 id="title"
                 name="title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Foundation refactor v1"
+                placeholder={copy.milestoneDialog.titlePlaceholder}
                 autoFocus
                 autoComplete="off"
               />
@@ -119,10 +118,10 @@ export function MilestoneDialog({
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label htmlFor="section">Section</Label>
+                <Label htmlFor="section">{copy.milestoneDialog.sectionLabel}</Label>
                 <Select value={sectionId} onValueChange={setSectionId}>
-                  <SelectTrigger id="section" aria-label="Section">
-                    <SelectValue placeholder="Choose section" />
+                  <SelectTrigger id="section" aria-label={copy.milestoneDialog.sectionLabel}>
+                    <SelectValue placeholder={copy.milestoneDialog.sectionPlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
                     {sections.map((s) => (
@@ -134,19 +133,19 @@ export function MilestoneDialog({
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="milestone-type">Type</Label>
+                <Label htmlFor="milestone-type">{copy.milestoneDialog.typeLabel}</Label>
                 <Select value={type} onValueChange={(value) => setType(value as MilestoneType)}>
-                  <SelectTrigger id="milestone-type" aria-label="Type">
-                    <SelectValue placeholder="Choose type" />
+                  <SelectTrigger id="milestone-type" aria-label={copy.milestoneDialog.typeLabel}>
+                    <SelectValue placeholder={copy.milestoneDialog.typePlaceholder} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="commitment">Commitment</SelectItem>
-                    <SelectItem value="intention">Intention</SelectItem>
+                    <SelectItem value="commitment">{copy.milestoneDialog.commitment}</SelectItem>
+                    <SelectItem value="intention">{copy.milestoneDialog.intention}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="milestone-date">Date</Label>
+                <Label htmlFor="milestone-date">{copy.milestoneDialog.dateLabel}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
@@ -156,10 +155,10 @@ export function MilestoneDialog({
                         "w-full justify-start text-left font-normal",
                         !date && "text-muted-foreground",
                       )}
-                      aria-label="Date"
+                      aria-label={copy.milestoneDialog.dateLabel}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
-                      {date ? format(date, "PPP") : "Pick a date"}
+                      {date ? format(date, "PPP") : copy.milestoneDialog.datePlaceholder}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
@@ -176,13 +175,13 @@ export function MilestoneDialog({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="desc">Description</Label>
+              <Label htmlFor="desc">{copy.milestoneDialog.descriptionLabel}</Label>
               <Textarea
                 id="desc"
                 name="description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Optional context."
+                placeholder={copy.milestoneDialog.descriptionPlaceholder}
                 rows={4}
               />
             </div>
@@ -197,16 +196,16 @@ export function MilestoneDialog({
                   onClick={() => setConfirmDelete(true)}
                 >
                   <Trash2 className="mr-1 h-4 w-4" />
-                  Delete
+                  {copy.milestoneDialog.delete}
                 </Button>
               )}
             </div>
             <div className="flex items-center gap-2">
               <Button variant="ghost" onClick={() => onOpenChange(false)}>
-                Cancel
+                {copy.milestoneDialog.cancel}
               </Button>
               <Button onClick={save} disabled={!canSave}>
-                {milestone ? "Save changes" : "Create milestone"}
+                {milestone ? copy.milestoneDialog.save : copy.milestoneDialog.create}
               </Button>
             </div>
           </DialogFooter>
@@ -217,9 +216,9 @@ export function MilestoneDialog({
         <ConfirmDialog
           open={confirmDelete}
           onOpenChange={setConfirmDelete}
-          title="Delete this milestone?"
-          description="This action cannot be undone."
-          confirmLabel="Delete"
+          title={copy.milestoneDialog.deleteTitle}
+          description={copy.milestoneDialog.deleteDescription}
+          confirmLabel={copy.milestoneDialog.delete}
           destructive
           onConfirm={() => {
             void deleteMilestone(milestone.id);

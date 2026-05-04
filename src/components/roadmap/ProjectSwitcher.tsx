@@ -16,10 +16,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useSetAppLocale, useShellCopy, useAppLocale } from "@/lib/app-locale";
 import type { Project } from "@/lib/roadmap-store";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +55,9 @@ export function ProjectSwitcher({
   onSignIn,
   onSignOut,
 }: Props) {
+  const copy = useShellCopy();
+  const locale = useAppLocale();
+  const setLocale = useSetAppLocale();
   const activeProject = projects.find((project) => project.id === activeProjectId);
   const profileLabel = getProfileLabel(user);
   const avatarUrl = user?.user_metadata?.avatar_url as string | undefined;
@@ -68,10 +74,12 @@ export function ProjectSwitcher({
           >
             {!compact && (
               <span className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
-                Timeline
+                {copy.header.timelineLabel}
               </span>
             )}
-            <span className="truncate font-medium">{activeProject?.title ?? "Local Roadmap"}</span>
+            <span className="truncate font-medium">
+              {activeProject?.title ?? copy.header.localProject}
+            </span>
             {activeProject?.isShared && (
               <span className="rounded-full border border-border bg-secondary/70 px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
                 Shared
@@ -82,7 +90,7 @@ export function ProjectSwitcher({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className={cn("w-64", compact && "w-56")}>
           <DropdownMenuLabel className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-            Timeline projects
+            {copy.header.timelineProjects}
           </DropdownMenuLabel>
           {projects.map((project) => (
             <DropdownMenuItem key={project.id} onClick={() => onSelectProject(project.id)}>
@@ -95,29 +103,29 @@ export function ProjectSwitcher({
           {projects.length > 0 && <DropdownMenuSeparator />}
           <DropdownMenuItem onClick={onNewProject} disabled={!user}>
             <FolderPlus className="mr-2 h-4 w-4" />
-            New project
+            {copy.header.newProject}
           </DropdownMenuItem>
           {activeProject && (
             <DropdownMenuItem onClick={onShareProject} disabled={!user}>
               <Users className="mr-2 h-4 w-4" />
-              {canManageActiveProject ? "Share project" : "Project members"}
+              {canManageActiveProject ? copy.header.shareProject : copy.header.projectMembers}
             </DropdownMenuItem>
           )}
           {canManageActiveProject ? (
             <>
               <DropdownMenuItem onClick={onRenameProject} disabled={!activeProjectId || !user}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Rename project
+                {copy.header.renameProject}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onDeleteProject} disabled={!activeProjectId || !user}>
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete project
+                {copy.header.deleteProject}
               </DropdownMenuItem>
             </>
           ) : activeProject ? (
             <DropdownMenuItem onClick={onLeaveProject} disabled={!user}>
               <Share2 className="mr-2 h-4 w-4" />
-              Leave project
+              {copy.header.leaveProject}
             </DropdownMenuItem>
           ) : null}
           {!user && (
@@ -125,7 +133,7 @@ export function ProjectSwitcher({
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={onSignIn}>
                 <LogIn className="mr-2 h-4 w-4" />
-                Sign in to save cloud projects
+                {copy.header.signInToSave}
               </DropdownMenuItem>
             </>
           )}
@@ -138,7 +146,7 @@ export function ProjectSwitcher({
             variant="ghost"
             size="icon"
             className="h-8 w-8 overflow-hidden rounded-full border border-border bg-card"
-            aria-label={user ? "Profile menu" : "Sign in"}
+            aria-label={user ? copy.header.profileMenu : copy.header.signIn}
           >
             {avatarUrl ? (
               <img src={avatarUrl} alt="" className="h-full w-full object-cover" />
@@ -151,19 +159,30 @@ export function ProjectSwitcher({
           <DropdownMenuLabel>
             <div className="truncate text-sm font-medium text-primary">{profileLabel}</div>
             <div className="truncate text-xs font-normal text-muted-foreground">
-              {user?.email ?? "Local-only workspace"}
+              {user?.email ?? copy.header.localOnlyWorkspace}
             </div>
           </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
+            {copy.header.language}
+          </DropdownMenuLabel>
+          <DropdownMenuRadioGroup
+            value={locale}
+            onValueChange={(value) => setLocale(value as "en" | "es")}
+          >
+            <DropdownMenuRadioItem value="en">English</DropdownMenuRadioItem>
+            <DropdownMenuRadioItem value="es">Español</DropdownMenuRadioItem>
+          </DropdownMenuRadioGroup>
           <DropdownMenuSeparator />
           {user ? (
             <DropdownMenuItem onClick={onSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
-              Sign out
+              {copy.header.signOut}
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem onClick={onSignIn}>
               <LogIn className="mr-2 h-4 w-4" />
-              Sign in with Google
+              {copy.header.signInWithGoogle}
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

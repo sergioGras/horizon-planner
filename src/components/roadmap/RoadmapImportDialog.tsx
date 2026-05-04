@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type DragEvent, type ChangeEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { AlertCircle, FileJson, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useShellCopy } from "@/lib/app-locale";
 import {
   createRoadmapSampleJsonText,
   createRoadmapSkillMarkdown,
@@ -31,6 +32,7 @@ type ParseState =
   | { status: "error"; fileName?: string; error: string };
 
 export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
+  const copy = useShellCopy();
   const inputRef = useRef<HTMLInputElement>(null);
   const [state, setState] = useState<ParseState>({ status: "idle" });
   const [isImporting, setIsImporting] = useState(false);
@@ -53,9 +55,9 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
     const intentionCount = state.data.milestones.length - commitmentCount;
 
     return {
-      title: state.data.title ?? "Imported roadmap",
+      title: state.data.title ?? copy.importRoadmap.importedRoadmap,
       scale: state.data.scale ?? "quarter",
-      anchor: state.data.anchor ?? "Today",
+      anchor: state.data.anchor ?? copy.timeline.today,
       sections: state.data.sections.length,
       milestones: state.data.milestones.length,
       commitmentCount,
@@ -63,7 +65,7 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
       sampleSections: state.data.sections.slice(0, 3),
       sampleMilestones: state.data.milestones.slice(0, 3),
     };
-  }, [state]);
+  }, [copy.importRoadmap.importedRoadmap, copy.timeline.today, state]);
 
   async function handleFile(file: File | null) {
     if (!file) return;
@@ -144,11 +146,10 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[640px] bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="font-display tracking-tight">Import roadmap JSON</DialogTitle>
-          <DialogDescription>
-            Drop a roadmap JSON file here or browse for one. The file is validated before import,
-            and you can preview the contents first.
-          </DialogDescription>
+          <DialogTitle className="font-display tracking-tight">
+            {copy.importRoadmap.title}
+          </DialogTitle>
+          <DialogDescription>{copy.importRoadmap.description}</DialogDescription>
         </DialogHeader>
 
         <input
@@ -189,10 +190,9 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
               <Upload className="h-4 w-4" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="font-medium text-primary">Drag and drop a roadmap JSON file here</div>
+              <div className="font-medium text-primary">{copy.importRoadmap.dropPrompt}</div>
               <div className="mt-1 text-sm text-muted-foreground">
-                The file should use the `horizon-roadmap` schema. Unknown fields are ignored by the
-                spec docs, but the current validator expects a clean v1 file.
+                {copy.importRoadmap.dropHint}
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 <Button
@@ -205,7 +205,7 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
                   }}
                 >
                   <FileJson className="mr-2 h-4 w-4" />
-                  Browse files
+                  {copy.importRoadmap.browseFiles}
                 </Button>
                 <Button
                   type="button"
@@ -216,7 +216,7 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
                     handleDownloadSkill();
                   }}
                 >
-                  Download skill
+                  {copy.importRoadmap.downloadSkill}
                 </Button>
                 <Button
                   type="button"
@@ -227,7 +227,7 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
                     handleDownloadSample();
                   }}
                 >
-                  Download sample
+                  {copy.importRoadmap.downloadSample}
                 </Button>
               </div>
             </div>
@@ -236,7 +236,7 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
 
         {state.status === "loading" && (
           <div className="rounded-md border border-border bg-secondary/20 px-3 py-2 text-sm text-muted-foreground">
-            Validating file...
+            {copy.importRoadmap.validating}
           </div>
         )}
 
@@ -245,7 +245,9 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
             <div className="flex items-start gap-2">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <div>
-                <div className="font-medium">Could not parse {state.fileName ?? "this file"}.</div>
+                <div className="font-medium">
+                  {copy.importRoadmap.errorTitle(state.fileName ?? "this file")}
+                </div>
                 <div className="mt-1 text-xs leading-relaxed">{state.error}</div>
               </div>
             </div>
@@ -260,27 +262,42 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
                   {preview.title}
                 </div>
                 <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                  {preview.scale} view
+                  {preview.scale} {copy.importRoadmap.view}
                 </div>
               </div>
               <div className="text-right text-xs text-muted-foreground">
-                <div>{preview.sections} sections</div>
-                <div>{preview.milestones} milestones</div>
+                <div>
+                  {preview.sections} {copy.importRoadmap.sections}
+                </div>
+                <div>
+                  {preview.milestones} {copy.importRoadmap.milestones}
+                </div>
               </div>
             </div>
 
             <div className="grid gap-2 text-sm sm:grid-cols-3">
-              <Stat label="Commitments" value={preview.commitmentCount.toString()} />
-              <Stat label="Intentions" value={preview.intentionCount.toString()} />
-              <Stat label="Anchor" value={preview.anchor} />
+              <Stat
+                label={copy.importRoadmap.commitments}
+                value={preview.commitmentCount.toString()}
+              />
+              <Stat
+                label={copy.importRoadmap.intentions}
+                value={preview.intentionCount.toString()}
+              />
+              <Stat label={copy.importRoadmap.anchor} value={preview.anchor} />
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
                 <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                  Sections
+                  {copy.importRoadmap.sectionLabel}
                 </div>
                 <div className="space-y-1">
+                  {preview.sampleSections.length === 0 && (
+                    <div className="rounded-md border border-border bg-card px-2 py-1.5 text-sm text-muted-foreground">
+                      {copy.importRoadmap.noSections}
+                    </div>
+                  )}
                   {preview.sampleSections.map((section) => (
                     <div
                       key={section.id}
@@ -295,9 +312,14 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
 
               <div className="space-y-2">
                 <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-                  Milestones
+                  {copy.importRoadmap.milestoneLabel}
                 </div>
                 <div className="space-y-1">
+                  {preview.sampleMilestones.length === 0 && (
+                    <div className="rounded-md border border-border bg-card px-2 py-1.5 text-sm text-muted-foreground">
+                      {copy.importRoadmap.noMilestones}
+                    </div>
+                  )}
                   {preview.sampleMilestones.map((milestone) => (
                     <div
                       key={milestone.id}
@@ -317,10 +339,10 @@ export function RoadmapImportDialog({ open, onOpenChange, onImport }: Props) {
 
         <DialogFooter className="gap-2">
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isImporting}>
-            Cancel
+            {copy.projectDialog.cancel}
           </Button>
           <Button onClick={submit} disabled={state.status !== "ready" || isImporting}>
-            Import roadmap
+            {copy.importRoadmap.importButton}
           </Button>
         </DialogFooter>
       </DialogContent>

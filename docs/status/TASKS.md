@@ -19,13 +19,10 @@
 
 ## Active task
 
-- `[~]` Add Spanish language support for the public app shell.
+- `[~]` Add JSON export for round-tripping and AI-assisted generation.
 
 ## Pending tasks
 
-- [ ] Translate core timeline labels, dialogs, and empty states to Spanish.
-- [ ] Add a language switcher and persist the preferred locale.
-- [ ] Add JSON export for round-tripping and AI-assisted generation.
 - [ ] Add PDF export using a print-friendly roadmap layout.
 - [ ] Add image export for a static snapshot of the current board window.
 - [ ] Add calendar export as `.ics` for Google Calendar import.
@@ -44,3 +41,6 @@
 - `[x]` Invite and accept timeline project collaborators.
 - `[x]` Member management for shared projects.
 - `[x]` Refine responsive layout breakpoints.
+- `[x]` Add Spanish language support for the public app shell.
+- `[x]` Translate core timeline labels, dialogs, and empty states to Spanish.
+- `[x]` Add a language switcher and persist the preferred locale.

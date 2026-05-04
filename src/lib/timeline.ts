@@ -12,6 +12,7 @@ import {
   startOfQuarter,
   startOfYear,
 } from "date-fns";
+import { enUS, type Locale as DateFnsLocale } from "date-fns/locale";
 import type { TimeScale } from "./roadmap-store";
 
 export type TimeWindow = {
@@ -32,7 +33,11 @@ export type TimeWindow = {
   }[];
 };
 
-export function getWindow(anchor: Date, scale: TimeScale): TimeWindow {
+export function getWindow(
+  anchor: Date,
+  scale: TimeScale,
+  locale: DateFnsLocale = enUS,
+): TimeWindow {
   if (scale === "year") {
     const start = startOfYear(anchor);
     const activeEnd = endOfYear(anchor);
@@ -44,7 +49,7 @@ export function getWindow(anchor: Date, scale: TimeScale): TimeWindow {
       const offset = differenceInCalendarDays(monthStart, start);
       const width = differenceInCalendarDays(monthEnd, monthStart) + 1;
       return {
-        label: format(monthStart, "MMM"),
+        label: format(monthStart, "MMM", { locale }),
         offsetPct: (offset / days) * 100,
         widthPct: (width / days) * 100,
         isMajor: true,
@@ -58,7 +63,7 @@ export function getWindow(anchor: Date, scale: TimeScale): TimeWindow {
       activeEnd,
       scale,
       days,
-      label: format(start, "yyyy"),
+      label: format(start, "yyyy", { locale }),
       ticks,
     };
   }
@@ -74,7 +79,7 @@ export function getWindow(anchor: Date, scale: TimeScale): TimeWindow {
       const offset = differenceInCalendarDays(monthStart, start);
       const width = differenceInCalendarDays(monthEnd, monthStart) + 1;
       return {
-        label: format(monthStart, "MMMM"),
+        label: format(monthStart, "MMMM", { locale }),
         offsetPct: (offset / days) * 100,
         widthPct: (width / days) * 100,
         isMajor: true,
@@ -87,7 +92,7 @@ export function getWindow(anchor: Date, scale: TimeScale): TimeWindow {
       activeEnd,
       scale,
       days,
-      label: `Q${Math.floor(start.getMonth() / 3) + 1} ${format(start, "yyyy")}`,
+      label: `Q${Math.floor(start.getMonth() / 3) + 1} ${format(start, "yyyy", { locale })}`,
       ticks,
     };
   }
@@ -104,7 +109,7 @@ export function getWindow(anchor: Date, scale: TimeScale): TimeWindow {
     const offset = differenceInCalendarDays(cursor, start);
     const width = differenceInCalendarDays(weekEnd, cursor) + 1;
     ticks.push({
-      label: format(cursor, "d"),
+      label: format(cursor, "d", { locale }),
       offsetPct: (offset / days) * 100,
       widthPct: (width / days) * 100,
       isLookahead: cursor > activeEnd,
@@ -118,7 +123,7 @@ export function getWindow(anchor: Date, scale: TimeScale): TimeWindow {
     activeEnd,
     scale,
     days,
-    label: format(start, "MMMM yyyy"),
+    label: format(start, "MMMM yyyy", { locale }),
     ticks,
   };
 }

@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useShellCopy } from "@/lib/app-locale";
 import { dateOffsetPct, isInWindow, type TimeWindow } from "@/lib/timeline";
 
 type Props = {
@@ -6,6 +7,7 @@ type Props = {
 };
 
 export function TimelineAxis({ window }: Props) {
+  const copy = useShellCopy();
   const today = new Date();
   const todayInside = isInWindow(today, window);
 
@@ -27,7 +29,7 @@ export function TimelineAxis({ window }: Props) {
                   : "text-muted-foreground",
             )}
           >
-            {tick.isMajor ? tick.label : `Wk ${tick.label}`}
+            {tick.isMajor ? tick.label : `${copy.timeline.weekAbbrev} ${tick.label}`}
           </span>
         </div>
       ))}
@@ -38,7 +40,7 @@ export function TimelineAxis({ window }: Props) {
           style={{ left: `${dateOffsetPct(today, window)}%` }}
         >
           <span className="absolute -top-0.5 -translate-x-1/2 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--highlight)]">
-            Today
+            {copy.timeline.today}
           </span>
         </div>
       )}

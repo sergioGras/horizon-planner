@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useShellCopy } from "@/lib/app-locale";
 import { useIsCompactLayout } from "@/hooks/use-compact-layout";
 import { cn } from "@/lib/utils";
 import type { Project, TimeScale } from "@/lib/roadmap-store";
@@ -63,6 +64,7 @@ export function BoardHeader({
   onAddMilestone,
 }: Props) {
   const isCompactLayout = useIsCompactLayout();
+  const copy = useShellCopy();
 
   return (
     <header className="shrink-0 border-b border-border/70 bg-background/90 backdrop-blur-sm">
@@ -74,7 +76,7 @@ export function BoardHeader({
       >
         <div className={cn("flex min-w-0 items-center", isCompactLayout ? "gap-2" : "gap-3")}>
           <div className="font-display text-sm font-medium uppercase tracking-[0.16em] text-primary">
-            Roadmap
+            {copy.brand}
           </div>
           <div
             className={cn("h-5 w-px bg-border/80", isCompactLayout ? "hidden" : "hidden sm:block")}
@@ -126,12 +128,18 @@ export function BoardHeader({
           <div className="flex shrink-0 items-center gap-2">
             {isSaving && !isCompactLayout && (
               <div className="hidden text-xs uppercase tracking-[0.14em] text-muted-foreground lg:block">
-                Saving
+                {copy.header.saving}
               </div>
             )}
-            <ScaleToggle scale={scale} onChange={onScaleChange} compact={isCompactLayout} />
+            <ScaleToggle
+              scale={scale}
+              onChange={onScaleChange}
+              compact={isCompactLayout}
+              labels={copy.header}
+            />
             {isCompactLayout ? (
               <HeaderOverflowMenu
+                copy={copy}
                 canCreateMilestone={canCreateMilestone}
                 onToday={onToday}
                 onImportRoadmap={onImportRoadmap}
@@ -145,7 +153,7 @@ export function BoardHeader({
                   className="text-muted-foreground"
                   onClick={onToday}
                 >
-                  Today
+                  {copy.header.today}
                 </Button>
                 <Button
                   variant="ghost"
@@ -154,7 +162,7 @@ export function BoardHeader({
                   onClick={onImportRoadmap}
                 >
                   <Upload className="h-4 w-4" />
-                  <span className="hidden sm:inline">Import</span>
+                  <span className="hidden sm:inline">{copy.header.importRoadmap}</span>
                 </Button>
                 <Button
                   onClick={onAddMilestone}
@@ -162,8 +170,8 @@ export function BoardHeader({
                   disabled={!canCreateMilestone}
                 >
                   <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">New milestone</span>
-                  <span className="sm:hidden">New</span>
+                  <span className="hidden sm:inline">{copy.header.newMilestone}</span>
+                  <span className="sm:hidden">{copy.header.newMilestone}</span>
                 </Button>
               </>
             )}
@@ -175,11 +183,13 @@ export function BoardHeader({
 }
 
 function HeaderOverflowMenu({
+  copy,
   canCreateMilestone,
   onToday,
   onImportRoadmap,
   onAddMilestone,
 }: {
+  copy: ReturnType<typeof useShellCopy>;
   canCreateMilestone: boolean;
   onToday: () => void;
   onImportRoadmap: () => void;
@@ -193,15 +203,15 @@ function HeaderOverflowMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onClick={onToday}>Today</DropdownMenuItem>
+        <DropdownMenuItem onClick={onToday}>{copy.header.today}</DropdownMenuItem>
         <DropdownMenuItem onClick={onImportRoadmap}>
           <Upload className="mr-2 h-4 w-4" />
-          Import roadmap
+          {copy.header.importRoadmap}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onAddMilestone} disabled={!canCreateMilestone}>
           <Plus className="mr-2 h-4 w-4" />
-          New milestone
+          {copy.header.newMilestone}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -211,12 +221,23 @@ function HeaderOverflowMenu({
 function ScaleToggle({
   scale,
   onChange,
+  labels,
   compact = false,
 }: {
   scale: TimeScale;
   onChange: (s: TimeScale) => void;
+  labels: Pick<
+    ReturnType<typeof useShellCopy>["header"],
+    "scaleMonth" | "scaleQuarter" | "scaleYear"
+  >;
   compact?: boolean;
 }) {
+  const scaleLabels = {
+    month: labels.scaleMonth,
+    quarter: labels.scaleQuarter,
+    year: labels.scaleYear,
+  } as const;
+
   return (
     <div className="inline-flex rounded-md border border-border bg-card p-0.5">
       {(["month", "quarter", "year"] as const).map((option) => (
@@ -233,7 +254,7 @@ function ScaleToggle({
               : "text-muted-foreground hover:text-primary",
           )}
         >
-          {option}
+          {scaleLabels[option]}
         </button>
       ))}
     </div>

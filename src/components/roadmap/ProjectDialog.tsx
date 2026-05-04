@@ -9,12 +9,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useShellCopy } from "@/lib/app-locale";
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title: string;
-  confirmLabel: string;
+  title?: string;
+  confirmLabel?: string;
   initialTitle?: string;
   onSubmit: (title: string) => void;
 };
@@ -27,6 +28,7 @@ export function ProjectDialog({
   initialTitle = "",
   onSubmit,
 }: Props) {
+  const copy = useShellCopy();
   const [projectTitle, setProjectTitle] = useState(initialTitle);
 
   useEffect(() => {
@@ -47,13 +49,13 @@ export function ProjectDialog({
           <DialogTitle className="font-display tracking-tight">{title}</DialogTitle>
         </DialogHeader>
         <div className="space-y-2 py-2">
-          <Label htmlFor="project-title">Project name</Label>
+          <Label htmlFor="project-title">{copy.projectDialog.label}</Label>
           <Input
             id="project-title"
             name="project-title"
             value={projectTitle}
             onChange={(event) => setProjectTitle(event.target.value)}
-            placeholder="e.g. 2026 Strategic Roadmap"
+            placeholder={copy.projectDialog.placeholder}
             autoFocus
             autoComplete="off"
             onKeyDown={(event) => {
@@ -63,10 +65,10 @@ export function ProjectDialog({
         </div>
         <DialogFooter className="gap-2">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {copy.projectDialog.cancel}
           </Button>
           <Button onClick={submit} disabled={!projectTitle.trim()}>
-            {confirmLabel}
+            {confirmLabel ?? copy.projectDialog.create}
           </Button>
         </DialogFooter>
       </DialogContent>

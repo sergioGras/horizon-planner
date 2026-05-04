@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useShellCopy } from "@/lib/app-locale";
 import { cn } from "@/lib/utils";
 import { DEFAULT_SECTION_COLOR, SECTION_COLORS, type SectionColorId } from "@/lib/section-colors";
 
@@ -31,6 +32,7 @@ export function SectionDialog({
   confirmLabel,
   onSubmit,
 }: Props) {
+  const copy = useShellCopy();
   const [name, setName] = useState(initialName);
   const [color, setColor] = useState<SectionColorId>(initialColor);
 
@@ -55,13 +57,13 @@ export function SectionDialog({
         </DialogHeader>
         <div className="space-y-5 py-2">
           <div className="space-y-2">
-            <Label htmlFor="section-name">Name</Label>
+            <Label htmlFor="section-name">{copy.sectionDialog.nameLabel}</Label>
             <Input
               id="section-name"
               name="section-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Core"
+              placeholder={copy.sectionDialog.namePlaceholder}
               autoFocus
               autoComplete="off"
               onKeyDown={(e) => {
@@ -71,7 +73,7 @@ export function SectionDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Palette</Label>
+            <Label>{copy.sectionDialog.paletteLabel}</Label>
             <div className="grid grid-cols-3 gap-2">
               {SECTION_COLORS.map((option) => (
                 <button
@@ -98,10 +100,10 @@ export function SectionDialog({
         </div>
         <DialogFooter className="gap-2">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
+            {copy.sectionDialog.cancel}
           </Button>
           <Button onClick={submit} disabled={!name.trim()}>
-            {confirmLabel}
+            {confirmLabel ?? copy.sectionDialog.create}
           </Button>
         </DialogFooter>
       </DialogContent>

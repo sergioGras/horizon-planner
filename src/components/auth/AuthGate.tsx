@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth";
+import { useShellCopy } from "@/lib/app-locale";
 import { useRoadmap } from "@/lib/roadmap-store";
 
 type InviteState =
@@ -13,6 +14,7 @@ type InviteState =
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth();
+  const copy = useShellCopy();
   const initializeCloud = useRoadmap((state) => state.initializeCloud);
   const initializeLocal = useRoadmap((state) => state.initializeLocal);
   const acceptProjectInvite = useRoadmap((state) => state.acceptProjectInvite);
@@ -49,7 +51,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       if (result.status === "accepted") {
         setInviteState({
           phase: "accepted",
-          message: `Joined ${result.projectTitle}. Opening the shared project...`,
+          message: copy.authGate.accepted(result.projectTitle),
         });
         clearInviteToken();
         window.setTimeout(() => {
@@ -60,19 +62,19 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
       setInviteState({
         phase: result.status,
-        message: result.message,
+        message: getInviteMessage(copy, result.status, result.message),
       });
 
       if (result.status !== "wrong-account") {
         clearInviteToken(setInviteToken);
       }
     });
-  }, [acceptProjectInvite, inviteToken, loading, roadmapStatus, user]);
+  }, [acceptProjectInvite, copy, inviteToken, loading, roadmapStatus, user]);
 
   if (loading) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-background text-sm text-muted-foreground">
-        Loading session...
+        {copy.authGate.loadingSession}
       </div>
     );
   }
@@ -107,7 +109,7 @@ function InviteStatusBanner({
       <div className="mx-auto flex w-full max-w-xl items-center justify-between gap-3 rounded-lg border border-border bg-card/95 px-4 py-3 shadow-lg backdrop-blur-sm">
         <div className="min-w-0">
           <div className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-            Project invite
+            {copy.authGate.inviteTitle}
           </div>
           <div className="truncate text-sm font-medium text-primary">{state.message}</div>
         </div>
@@ -115,21 +117,38 @@ function InviteStatusBanner({
           {isActionable ? (
             <>
               <Button variant="ghost" size="sm" onClick={onDismiss}>
-                Dismiss
+                {copy.authGate.dismiss}
               </Button>
               <Button size="sm" onClick={onSwitchAccount}>
-                Try another account
+                {copy.authGate.tryAnotherAccount}
               </Button>
             </>
           ) : (
             <Button variant="ghost" size="sm" onClick={onDismiss}>
-              Close
+              {copy.authGate.close}
             </Button>
           )}
         </div>
       </div>
     </div>
   );
+}
+
+function getInviteMessage(
+  copy: ReturnType<typeof useShellCopy>,
+  status: Exclude<InviteState["phase"], "idle" | "accepting" | "accepted">,
+  fallback: string,
+) {
+  switch (status) {
+    case "expired":
+      return copy.authGate.expired;
+    case "wrong-account":
+      return copy.authGate.wrongAccount;
+    case "invalid":
+      return copy.authGate.invalid;
+    default:
+      return fallback;
+  }
 }
 
 function getInviteToken() {

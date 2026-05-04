@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/auth";
+import { useShellCopy } from "@/lib/app-locale";
 import {
   useRoadmap,
   type Project,
@@ -27,6 +28,7 @@ type Props = {
 };
 
 export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
+  const copy = useShellCopy();
   const { user } = useAuth();
   const listProjectMembers = useRoadmap((state) => state.listProjectMembers);
   const listProjectInvites = useRoadmap((state) => state.listProjectInvites);
@@ -160,44 +162,46 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[84svh] overflow-hidden border-border bg-card sm:max-w-[680px] lg:max-w-[760px]">
         <DialogHeader>
-          <DialogTitle className="font-display tracking-tight">Share project</DialogTitle>
+          <DialogTitle className="font-display tracking-tight">
+            {copy.shareProject.title}
+          </DialogTitle>
           <DialogDescription>
-            Invite collaborators, review who has access, and manage pending access requests.
+            {isOwner ? copy.shareProject.descriptionOwner : copy.shareProject.descriptionMember}
           </DialogDescription>
         </DialogHeader>
 
         {!project ? (
-          <div className="py-4 text-sm text-muted-foreground">No project selected.</div>
+          <div className="py-4 text-sm text-muted-foreground">
+            {copy.shareProject.noProjectSelected}
+          </div>
         ) : (
           <div className="min-h-0 space-y-4 overflow-y-auto pr-1">
             <div className="rounded-lg border border-border bg-secondary/20 px-4 py-3">
               <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                Project
+                {copy.shareProject.projectLabel}
               </div>
               <div className="mt-1 font-display text-lg text-primary">{project.title}</div>
               <div className="mt-1 text-sm text-muted-foreground">
-                {isOwner
-                  ? "Invite collaborators by email. They can join and edit this roadmap."
-                  : "You can view members and leave this project. Only the owner can invite or revoke access."}
+                {isOwner ? copy.shareProject.descriptionOwner : copy.shareProject.descriptionMember}
               </div>
             </div>
 
             {isOwner && (
               <div className="space-y-3 rounded-lg border border-border p-4">
                 <div>
-                  <div className="font-medium text-primary">Invite by email</div>
+                  <div className="font-medium text-primary">{copy.shareProject.inviteByEmail}</div>
                   <div className="text-sm text-muted-foreground">
-                    An invite link is created for the address you enter.
+                    {copy.shareProject.inviteDescription}
                   </div>
                 </div>
                 <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
                   <div className="space-y-2">
-                    <Label htmlFor="invite-email">Email address</Label>
+                    <Label htmlFor="invite-email">{copy.shareProject.emailLabel}</Label>
                     <Input
                       id="invite-email"
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
-                      placeholder="teammate@company.com"
+                      placeholder={copy.shareProject.emailPlaceholder}
                       autoComplete="email"
                       disabled={sharing}
                     />
@@ -209,7 +213,7 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
                       ) : (
                         <MailPlus className="mr-2 h-4 w-4" />
                       )}
-                      Create invite
+                      {copy.shareProject.createInvite}
                     </Button>
                   </div>
                 </div>
@@ -219,7 +223,7 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
                     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                       <div className="min-w-0">
                         <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
-                          Invite link
+                          {copy.shareProject.inviteLink}
                         </div>
                         <div className="break-all text-sm text-primary">{copiedLink}</div>
                       </div>
@@ -230,7 +234,7 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
                         onClick={handleCopyLink}
                       >
                         <Copy className="mr-2 h-4 w-4" />
-                        Copy link
+                        {copy.shareProject.copyLink}
                       </Button>
                     </div>
                   </div>
@@ -241,9 +245,9 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
             <div className="space-y-3 rounded-lg border border-border p-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="font-medium text-primary">Members</div>
+                  <div className="font-medium text-primary">{copy.shareProject.membersTitle}</div>
                   <div className="text-sm text-muted-foreground">
-                    People with access to this timeline project.
+                    {copy.shareProject.membersDescription}
                   </div>
                 </div>
                 <Users className="h-4 w-4 text-muted-foreground" />
@@ -252,9 +256,13 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
               <Separator />
 
               {loading ? (
-                <div className="py-3 text-sm text-muted-foreground">Loading members...</div>
+                <div className="py-3 text-sm text-muted-foreground">
+                  {copy.shareProject.loadingMembers}
+                </div>
               ) : members.length === 0 ? (
-                <div className="py-3 text-sm text-muted-foreground">No collaborators yet.</div>
+                <div className="py-3 text-sm text-muted-foreground">
+                  {copy.shareProject.noCollaborators}
+                </div>
               ) : (
                 <div className="space-y-2">
                   {members.map((member) => (
@@ -269,7 +277,7 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
                           </div>
                           {member.userId === user?.id ? (
                             <div className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                              You
+                              {copy.shareProject.you}
                             </div>
                           ) : null}
                         </div>
@@ -284,13 +292,13 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                           onClick={() => void handleRemoveMember(member)}
                           disabled={sharing}
-                          aria-label={`Remove ${member.email}`}
+                          aria-label={`${copy.shareProject.member} ${member.email}`}
                         >
                           <UserMinus className="h-4 w-4" />
                         </Button>
                       ) : !isOwner ? (
                         <div className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                          Member
+                          {copy.shareProject.member}
                         </div>
                       ) : null}
                     </div>
@@ -302,9 +310,9 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
             {isOwner && invites.length > 0 && (
               <div className="space-y-3 rounded-lg border border-border p-4">
                 <div>
-                  <div className="font-medium text-primary">Pending invites</div>
+                  <div className="font-medium text-primary">{copy.shareProject.pendingTitle}</div>
                   <div className="text-sm text-muted-foreground">
-                    Copy or revoke pending access.
+                    {copy.shareProject.pendingDescription}
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -318,7 +326,8 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
                           {invite.email}
                         </div>
                         <div className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                          Expires {new Date(invite.expiresAt).toLocaleDateString()}
+                          {copy.shareProject.expiresOn}{" "}
+                          {new Date(invite.expiresAt).toLocaleDateString()}
                         </div>
                       </div>
                       <Button
@@ -327,7 +336,7 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
                         onClick={() => void handleRevokeInvite(invite)}
                         disabled={sharing}
-                        aria-label={`Revoke invite for ${invite.email}`}
+                        aria-label={`${copy.shareProject.invited} ${invite.email}`}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -348,11 +357,11 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
         <DialogFooter className="gap-2">
           {!isOwner && project && (
             <Button variant="outline" onClick={handleLeaveProject} disabled={sharing}>
-              Leave project
+              {copy.shareProject.leaveProject}
             </Button>
           )}
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Close
+            {copy.shareProject.close}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -8,6 +8,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useShellCopy } from "@/lib/app-locale";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -29,6 +30,7 @@ export function ConfirmDialog({
   destructive,
   onConfirm,
 }: Props) {
+  const copy = useShellCopy();
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="bg-card border-border">
@@ -37,14 +39,14 @@ export function ConfirmDialog({
           {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{copy.confirm.cancel}</AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             className={cn(
               destructive && "bg-destructive text-destructive-foreground hover:bg-destructive/90",
             )}
           >
-            {confirmLabel}
+            {confirmLabel ?? copy.confirm.confirm}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

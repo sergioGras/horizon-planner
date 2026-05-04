@@ -14,6 +14,7 @@ import { SectionDialog } from "./SectionDialog";
 import { SectionLane } from "./SectionLane";
 import { TimelineAxis } from "./TimelineAxis";
 import { useAuth } from "@/lib/auth";
+import { useDateFnsLocale, useShellCopy } from "@/lib/app-locale";
 import {
   getImportDecisionKey,
   getSeedRoadmapData,
@@ -44,6 +45,8 @@ function saveImportDecision(userId: string) {
 
 export function Board() {
   const { user, signInWithGoogle, signOut } = useAuth();
+  const copy = useShellCopy();
+  const dateLocale = useDateFnsLocale();
   const isMobile = useIsMobile();
   const mode = useRoadmap((state) => state.mode);
   const projects = useRoadmap((state) => state.projects);
@@ -69,7 +72,10 @@ export function Board() {
 
   const orderedSections = useMemo(() => orderSections(sections), [sections]);
   const anchorDate = useMemo(() => fromLocalISODate(anchor), [anchor]);
-  const window = useMemo(() => getWindow(anchorDate, scale), [anchorDate, scale]);
+  const window = useMemo(
+    () => getWindow(anchorDate, scale, dateLocale),
+    [anchorDate, scale, dateLocale],
+  );
   const lastWheelNavigationAt = useRef(0);
   const boardViewportRef = useRef<HTMLDivElement>(null);
   const hasProvisionedInitialProject = useRef(false);
@@ -97,7 +103,7 @@ export function Board() {
   const [localImportData, setLocalImportData] = useState<LocalRoadmapData | null>(null);
   const [roadmapImportOpen, setRoadmapImportOpen] = useState(false);
 
-  const windowRange = `${format(window.start, "MMM d, yyyy")} - ${format(window.activeEnd, "MMM d, yyyy")}`;
+  const windowRange = `${format(window.start, "PP", { locale: dateLocale })} - ${format(window.activeEnd, "PP", { locale: dateLocale })}`;
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? null;
   const isSaving = status === "saving";
   const isCloudMode = mode === "cloud";
@@ -215,19 +221,19 @@ export function Board() {
         >
           {status === "loading" && isCloudMode ? (
             <div className="flex min-h-0 flex-1 items-center justify-center text-sm text-muted-foreground">
-              Loading roadmap...
+              {copy.board.loadingRoadmap}
             </div>
           ) : !activeProjectId && isCloudMode ? (
             <div className="flex min-h-0 flex-1 items-center justify-center">
               <div className="rounded-lg border border-border bg-card p-6 text-center shadow-sm">
                 <div className="font-display text-lg font-medium text-primary">
-                  Create a project
+                  {copy.board.createProjectTitle}
                 </div>
                 <p className="mt-2 max-w-sm text-sm text-muted-foreground">
-                  Projects keep separate personal roadmaps under the same account.
+                  {copy.board.createProjectDescription}
                 </p>
                 <Button className="mt-5" onClick={() => setProjectAddOpen(true)}>
-                  New project
+                  {copy.board.newProject}
                 </Button>
               </div>
             </div>
@@ -244,7 +250,7 @@ export function Board() {
             >
               <div className="grid h-11 shrink-0 grid-cols-[184px_minmax(0,1fr)] border-b border-border/70 bg-secondary/35 md:grid-cols-[232px_minmax(0,1fr)]">
                 <div className="border-r border-border/60 px-3 py-3 text-[11px] uppercase tracking-[0.16em] text-muted-foreground md:px-5">
-                  Sections
+                  {copy.timeline.sectionsLabel}
                 </div>
                 <div className="relative min-w-0 overflow-hidden">
                   <TimelineAxis window={window} />
@@ -283,7 +289,7 @@ export function Board() {
                       onClick={() => setSectionAddOpen(true)}
                     >
                       <Plus className="h-4 w-4" />
-                      Add section
+                      {copy.sectionLane.add}
                     </Button>
                   </div>
                   <div className="bg-card" />
@@ -313,8 +319,8 @@ export function Board() {
         <ProjectDialog
           open={projectAddOpen}
           onOpenChange={setProjectAddOpen}
-          title="New project"
-          confirmLabel="Create project"
+          title={copy.projectDialog.newTitle}
+          confirmLabel={copy.projectDialog.create}
           onSubmit={(title) => {
             if (isCloudMode) void createProject(title);
             else void signInWithGoogle();
@@ -323,8 +329,8 @@ export function Board() {
         <ProjectDialog
           open={!!projectRename}
           onOpenChange={(open) => !open && setProjectRename(null)}
-          title="Rename project"
-          confirmLabel="Save"
+          title={copy.projectDialog.renameTitle}
+          confirmLabel={copy.projectDialog.save}
           initialTitle={projectRename?.title}
           onSubmit={(title) => {
             if (projectRename) void renameProject(projectRename.id, title);
@@ -333,9 +339,9 @@ export function Board() {
         <ConfirmDialog
           open={!!projectDelete}
           onOpenChange={(open) => !open && setProjectDelete(null)}
-          title={`Delete "${projectDelete?.title}"?`}
-          description="All sections and milestones in this project will be deleted. This cannot be undone."
-          confirmLabel="Delete project"
+          title={copy.confirm.deleteProjectTitle(projectDelete?.title ?? "")}
+          description={copy.confirm.deleteProjectDescription}
+          confirmLabel={copy.header.deleteProject}
           destructive
           onConfirm={() => {
             if (projectDelete) void deleteProject(projectDelete.id);
@@ -356,15 +362,15 @@ export function Board() {
         <SectionDialog
           open={sectionAddOpen}
           onOpenChange={setSectionAddOpen}
-          title="New section"
-          confirmLabel="Create section"
+          title={copy.sectionDialog.newTitle}
+          confirmLabel={copy.sectionDialog.create}
           onSubmit={(name, color) => void addSection(name, color)}
         />
         <SectionDialog
           open={!!sectionRename}
           onOpenChange={(open) => !open && setSectionRename(null)}
-          title="Edit section"
-          confirmLabel="Save"
+          title={copy.sectionDialog.editTitle}
+          confirmLabel={copy.sectionDialog.save}
           initialName={sectionRename?.title ?? ""}
           initialColor={sectionRename?.color}
           onSubmit={(name, color) =>
@@ -374,9 +380,9 @@ export function Board() {
         <ConfirmDialog
           open={!!sectionDelete}
           onOpenChange={(open) => !open && setSectionDelete(null)}
-          title={`Delete "${sectionDelete?.title}"?`}
-          description="All milestones in this section will also be deleted. This cannot be undone."
-          confirmLabel="Delete section"
+          title={copy.confirm.deleteSectionTitle(sectionDelete?.title ?? "")}
+          description={copy.confirm.deleteSectionDescription}
+          confirmLabel={copy.sectionLane.deleteSection}
           destructive
           onConfirm={() => {
             if (sectionDelete) void deleteSection(sectionDelete.id);

@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { useShellCopy } from "@/lib/app-locale";
 import type { Milestone, Section } from "@/lib/roadmap-store";
 import { milestonesForSection } from "@/lib/roadmap-view";
 import { getSectionColor } from "@/lib/section-colors";
@@ -45,6 +46,7 @@ export function SectionLane({
   onMoveSection,
   onDeleteSection,
 }: Props) {
+  const copy = useShellCopy();
   const inWindow = milestonesForSection(section.id, milestones, window);
   const totalCount = milestones.filter((milestone) => milestone.sectionId === section.id).length;
   const sectionColor = getSectionColor(section.color);
@@ -90,7 +92,7 @@ export function SectionLane({
           </div>
           {density !== "dense" && !isMobile && (
             <div className="truncate text-[11px] text-muted-foreground">
-              {totalCount} milestones
+              {copy.sectionLane.milestonesCount(totalCount)}
             </div>
           )}
         </div>
@@ -104,10 +106,10 @@ export function SectionLane({
               density === "dense" || isMobile ? "w-7" : "px-2",
             )}
             onClick={() => onAddMilestone(section.id)}
-            aria-label={`Add milestone to ${section.title}`}
+            aria-label={`${copy.sectionLane.addMilestone} ${section.title}`}
           >
             <Plus className="h-4 w-4" />
-            {density !== "dense" && !isMobile && "Add"}
+            {density !== "dense" && !isMobile && copy.sectionLane.add}
           </Button>
 
           <DropdownMenu>
@@ -116,7 +118,7 @@ export function SectionLane({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-muted-foreground hover:text-primary"
-                aria-label={`Section actions for ${section.title}`}
+                aria-label={`${copy.sectionLane.sectionActions} ${section.title}`}
               >
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
@@ -124,21 +126,21 @@ export function SectionLane({
             <DropdownMenuContent align="end" className="w-44">
               <DropdownMenuItem onClick={() => onRenameSection(section)}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Edit section
+                {copy.sectionLane.editSection}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onMoveSection(section.id, -1)}
                 disabled={sectionIndex === 0}
               >
                 <ArrowUp className="mr-2 h-4 w-4" />
-                Move up
+                {copy.sectionLane.moveUp}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onMoveSection(section.id, 1)}
                 disabled={sectionIndex === sectionCount - 1}
               >
                 <ArrowDown className="mr-2 h-4 w-4" />
-                Move down
+                {copy.sectionLane.moveDown}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -146,7 +148,7 @@ export function SectionLane({
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete
+                {copy.sectionLane.deleteSection}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -164,7 +166,7 @@ export function SectionLane({
         {inWindow.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center px-3 text-center">
             <div className="rounded-md border border-dashed border-border bg-card/80 px-3 py-1 text-[11px] text-muted-foreground">
-              No milestones
+              {copy.sectionLane.noMilestones}
             </div>
           </div>
         )}

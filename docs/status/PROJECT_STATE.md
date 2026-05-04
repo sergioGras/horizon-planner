@@ -10,7 +10,8 @@
 ## Current Focus
 
 - Responsive layout breakpoint refinement is done; the header now collapses earlier and the board uses the full viewport width.
-- Spanish localization is now the next active workstream for the public app shell.
+- Spanish localization now covers the public app shell, with a persisted language switcher in the profile menu.
+- The next active workstream is JSON export for round-tripping and AI-assisted generation.
 - Shared project collaboration is in place with invite-only acceptance and member management.
 - JSON export for round-tripping and AI-assisted generation is available.
 - AI-native roadmap JSON format is defined in a versioned spec.

@@ -3,6 +3,7 @@ import { format, isSameDay, parseISO } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useDateFnsLocale, useShellCopy } from "@/lib/app-locale";
 import type { Milestone } from "@/lib/roadmap-store";
 import { groupMilestones } from "@/lib/roadmap-view";
 import type { SectionColor } from "@/lib/section-colors";
@@ -16,6 +17,8 @@ type Props = {
 };
 
 export function MilestoneLayer({ window, items, sectionColor, onOpen }: Props) {
+  const copy = useShellCopy();
+  const dateLocale = useDateFnsLocale();
   const layerRef = useRef<HTMLDivElement>(null);
   const [layerHeight, setLayerHeight] = useState(0);
   const groups = groupMilestones(items, window);
@@ -44,6 +47,7 @@ export function MilestoneLayer({ window, items, sectionColor, onOpen }: Props) {
                 items={group.items}
                 offsetPct={group.offsetPct}
                 sectionColor={sectionColor}
+                copy={copy}
                 onOpen={onOpen}
               />
             );
@@ -58,6 +62,8 @@ export function MilestoneLayer({ window, items, sectionColor, onOpen }: Props) {
               stackCount={group.items.length}
               compact={window.scale === "year"}
               sectionColor={sectionColor}
+              copy={copy}
+              dateLocale={dateLocale}
               onClick={() => onOpen(milestone)}
             />
           ));
@@ -74,6 +80,8 @@ function MilestoneChip({
   stackCount,
   compact,
   sectionColor,
+  copy,
+  dateLocale,
   onClick,
 }: {
   milestone: Milestone;
@@ -82,6 +90,8 @@ function MilestoneChip({
   stackCount: number;
   compact: boolean;
   sectionColor: SectionColor;
+  copy: ReturnType<typeof useShellCopy>;
+  dateLocale: ReturnType<typeof useDateFnsLocale>;
   onClick: () => void;
 }) {
   const date = parseISO(milestone.date);
@@ -113,7 +123,7 @@ function MilestoneChip({
           "--section-color-ink": sectionColor.ink,
         } as CSSProperties
       }
-      title={`${milestone.title} - ${format(date, "PPP")}`}
+      title={`${milestone.title} - ${format(date, "PPP", { locale: dateLocale })}`}
     >
       <span
         className={cn(compact ? "h-1.5 w-1.5" : "h-1.5 w-1.5", "shrink-0 rounded-full")}
@@ -141,7 +151,7 @@ function MilestoneChip({
               backgroundColor: isIntention ? sectionColor.soft : undefined,
             }}
           >
-            {isIntention ? "Intention" : "Commitment"}
+            {isIntention ? copy.timeline.intentionLabel : copy.timeline.commitmentLabel}
           </Badge>
         )}
         <span
@@ -154,7 +164,7 @@ function MilestoneChip({
         </span>
         {compact && (
           <span className="mt-0.5 block text-[9px] uppercase tracking-[0.14em] opacity-70">
-            {isIntention ? "Intent" : "Commit"}
+            {isIntention ? copy.timeline.intentionShort : copy.timeline.commitmentShort}
           </span>
         )}
       </span>
@@ -180,11 +190,13 @@ function ClusterChip({
   items,
   offsetPct,
   sectionColor,
+  copy,
   onOpen,
 }: {
   items: Milestone[];
   offsetPct: number;
   sectionColor: SectionColor;
+  copy: ReturnType<typeof useShellCopy>;
   onOpen: (milestone: Milestone) => void;
 }) {
   return (
@@ -203,12 +215,14 @@ function ClusterChip({
             color: "var(--primary-foreground)",
           }}
         >
-          <span className="text-[12px] font-medium">{items.length} milestones</span>
+          <span className="text-[12px] font-medium">
+            {copy.timeline.clusterItems(items.length)}
+          </span>
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-72 p-2">
         <div className="px-2 pb-2 pt-1 text-[11px] uppercase tracking-[0.14em] text-muted-foreground">
-          Cluster - {items.length} items
+          {copy.timeline.clusterTitle(items.length)}
         </div>
         <div className="flex flex-col">
           {items.map((milestone) => (
