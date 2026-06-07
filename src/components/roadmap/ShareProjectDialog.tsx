@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Copy, Loader2, MailPlus, Trash2, UserMinus, Users } from "lucide-react";
+import { Copy, Loader2, MailPlus, Monitor, Trash2, UserMinus, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +14,12 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/lib/auth";
 import { useShellCopy } from "@/lib/app-locale";
+import {
+  createProjectDisplayLink,
+  listProjectDisplayLinks,
+  revokeProjectDisplayLink,
+  type ProjectDisplayLink,
+} from "@/lib/display-roadmap";
 import {
   useRoadmap,
   type Project,
@@ -39,10 +45,12 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
 
   const [members, setMembers] = useState<ProjectMember[]>([]);
   const [invites, setInvites] = useState<ProjectInvite[]>([]);
+  const [displayLinks, setDisplayLinks] = useState<ProjectDisplayLink[]>([]);
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [displayUrl, setDisplayUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const isOwner = !!user && !!project && project.ownerId === user.id;
@@ -54,11 +62,16 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
     setLoading(true);
     setError(null);
 
-    Promise.all([listProjectMembers(project.id), listProjectInvites(project.id)])
-      .then(([nextMembers, nextInvites]) => {
+    Promise.all([
+      listProjectMembers(project.id),
+      listProjectInvites(project.id),
+      isOwner ? listProjectDisplayLinks(project.id) : Promise.resolve([]),
+    ])
+      .then(([nextMembers, nextInvites, nextDisplayLinks]) => {
         if (!isMounted) return;
         setMembers(nextMembers);
         setInvites(nextInvites);
+        setDisplayLinks(nextDisplayLinks);
       })
       .catch((fetchError) => {
         if (!isMounted) return;
@@ -71,24 +84,27 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
     return () => {
       isMounted = false;
     };
-  }, [listProjectInvites, listProjectMembers, open, project]);
+  }, [isOwner, listProjectInvites, listProjectMembers, open, project]);
 
   useEffect(() => {
     if (!open) {
       setEmail("");
       setCopiedLink(null);
+      setDisplayUrl(null);
       setError(null);
     }
   }, [open]);
 
   async function refreshLists() {
     if (!project) return;
-    const [nextMembers, nextInvites] = await Promise.all([
+    const [nextMembers, nextInvites, nextDisplayLinks] = await Promise.all([
       listProjectMembers(project.id),
       listProjectInvites(project.id),
+      isOwner ? listProjectDisplayLinks(project.id) : Promise.resolve([]),
     ]);
     setMembers(nextMembers);
     setInvites(nextInvites);
+    setDisplayLinks(nextDisplayLinks);
   }
 
   async function handleCreateInvite() {
@@ -115,6 +131,46 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
   async function handleCopyLink() {
     if (!copiedLink) return;
     await navigator.clipboard.writeText(copiedLink);
+  }
+
+  async function handleCreateDisplayLink() {
+    if (!project) return;
+    setSharing(true);
+    setError(null);
+    try {
+      const result = await createProjectDisplayLink(project.id);
+      setDisplayUrl(new URL(`/display/${result.token}`, window.location.origin).toString());
+      await refreshLists();
+    } catch (displayError) {
+      setError(
+        displayError instanceof Error ? displayError.message : "Failed to create display link.",
+      );
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  async function handleCopyDisplayLink() {
+    if (!displayUrl) return;
+    await navigator.clipboard.writeText(displayUrl);
+  }
+
+  async function handleRevokeDisplayLink() {
+    const displayLink = displayLinks[0];
+    if (!displayLink) return;
+    setSharing(true);
+    setError(null);
+    try {
+      await revokeProjectDisplayLink(displayLink.id);
+      setDisplayUrl(null);
+      await refreshLists();
+    } catch (displayError) {
+      setError(
+        displayError instanceof Error ? displayError.message : "Failed to revoke display link.",
+      );
+    } finally {
+      setSharing(false);
+    }
   }
 
   async function handleRemoveMember(member: ProjectMember) {
@@ -239,6 +295,62 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {isOwner && (
+              <div className="space-y-3 rounded-lg border border-border p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <div className="font-medium text-primary">{copy.shareProject.displayTitle}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {copy.shareProject.displayDescription}
+                    </div>
+                  </div>
+                  <Monitor className="h-4 w-4 shrink-0 text-muted-foreground" />
+                </div>
+
+                {displayUrl && (
+                  <div className="rounded-md border border-dashed border-border bg-background px-3 py-3">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                      <div className="min-w-0">
+                        <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
+                          {copy.shareProject.displayLink}
+                        </div>
+                        <div className="break-all text-sm text-primary">{displayUrl}</div>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={handleCopyDisplayLink}>
+                        <Copy className="mr-2 h-4 w-4" />
+                        {copy.shareProject.copyLink}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {displayLinks.length > 0 && !displayUrl && (
+                  <div className="text-sm text-muted-foreground">
+                    {copy.shareProject.activeDisplayLink}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  <Button onClick={handleCreateDisplayLink} disabled={sharing}>
+                    {sharing ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Monitor className="mr-2 h-4 w-4" />
+                    )}
+                    {displayLinks.length > 0
+                      ? copy.shareProject.replaceDisplayLink
+                      : copy.shareProject.createDisplayLink}
+                  </Button>
+                  {displayLinks.length > 0 && (
+                    <Button variant="outline" onClick={handleRevokeDisplayLink} disabled={sharing}>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      {copy.shareProject.revokeDisplayLink}
+                    </Button>
+                  )}
+                </div>
               </div>
             )}
 

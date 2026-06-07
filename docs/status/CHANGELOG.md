@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 2026-06-07
+
+- Added owner-managed read-only display links for embedding cloud roadmap projects without Google OAuth.
+- Added a token-scoped public display RPC that exposes only project title, sections, and milestones.
+- Added a kiosk-friendly `/display/$token` route with timeline navigation, milestone inspection, minute clock refresh, and five-minute cloud-data polling.
+- Added display-link creation, copy, replacement, and revocation controls to the project sharing dialog.
+
 ## 2026-05-04
 
 - Added Spanish localization for the public app shell, including the sign-in screen, auth banner, header, board shell states, and not-found page.

@@ -4,6 +4,8 @@
 
 1. Create a Supabase project.
 2. Run `supabase/migrations/001_authenticated_roadmap.sql` in the SQL editor.
+   Then apply the remaining migrations in numeric order, including
+   `008_read_only_display_links.sql` before creating read-only display links.
 3. Enable Google in `Authentication > Providers`.
 4. Add redirect URLs in `Authentication > URL Configuration`:
    - `http://localhost:8080`
@@ -51,3 +53,4 @@ npx wrangler deploy
 - A first signed-in user can create or import a project.
 - Refresh keeps the session and reloads cloud roadmap data.
 - RLS blocks cross-user data access in Supabase.
+- A revoked read-only display link no longer loads its project.

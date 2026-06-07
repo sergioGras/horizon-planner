@@ -79,6 +79,14 @@ export type ShellCopy = {
     createProjectDescription: string;
     newProject: string;
   };
+  display: {
+    readOnly: string;
+    unavailableTitle: string;
+    invalidDescription: string;
+    retry: string;
+    previousWindow: string;
+    nextWindow: string;
+  };
   emptyBoard: {
     title: string;
     description: string;
@@ -190,6 +198,13 @@ export type ShellCopy = {
     member: string;
     invited: string;
     expiresOn: string;
+    displayTitle: string;
+    displayDescription: string;
+    createDisplayLink: string;
+    replaceDisplayLink: string;
+    displayLink: string;
+    activeDisplayLink: string;
+    revokeDisplayLink: string;
   };
   notFound: {
     title: string;
@@ -278,6 +293,14 @@ const COPY: Record<AppLocale, ShellCopy> = {
       createProjectTitle: "Create a project",
       createProjectDescription: "Projects keep separate personal roadmaps under the same account.",
       newProject: "New project",
+    },
+    display: {
+      readOnly: "Read-only display",
+      unavailableTitle: "Display roadmap unavailable",
+      invalidDescription: "This display link is invalid or has been revoked.",
+      retry: "Retry",
+      previousWindow: "Previous window",
+      nextWindow: "Next window",
     },
     emptyBoard: {
       title: "Empty roadmap",
@@ -398,6 +421,14 @@ const COPY: Record<AppLocale, ShellCopy> = {
       member: "Member",
       invited: "Invited",
       expiresOn: "Expires",
+      displayTitle: "Read-only display",
+      displayDescription:
+        "Create a public read-only link for an embedded dashboard. Creating a new link revokes the previous one.",
+      createDisplayLink: "Create display link",
+      replaceDisplayLink: "Replace display link",
+      displayLink: "Display link",
+      activeDisplayLink: "An active display link exists.",
+      revokeDisplayLink: "Revoke display link",
     },
     notFound: {
       title: "Page not found",
@@ -486,6 +517,14 @@ const COPY: Record<AppLocale, ShellCopy> = {
       createProjectDescription:
         "Los proyectos mantienen roadmaps personales separados dentro de la misma cuenta.",
       newProject: "Nuevo proyecto",
+    },
+    display: {
+      readOnly: "Vista de solo lectura",
+      unavailableTitle: "Vista del roadmap no disponible",
+      invalidDescription: "Este enlace de vista no es valido o ha sido revocado.",
+      retry: "Reintentar",
+      previousWindow: "Ventana anterior",
+      nextWindow: "Ventana siguiente",
     },
     emptyBoard: {
       title: "Roadmap vacío",
@@ -606,6 +645,14 @@ const COPY: Record<AppLocale, ShellCopy> = {
       member: "Miembro",
       invited: "Invitado",
       expiresOn: "Caduca",
+      displayTitle: "Vista de solo lectura",
+      displayDescription:
+        "Crea un enlace publico de solo lectura para un dashboard integrado. Crear uno nuevo revoca el anterior.",
+      createDisplayLink: "Crear enlace de vista",
+      replaceDisplayLink: "Reemplazar enlace de vista",
+      displayLink: "Enlace de vista",
+      activeDisplayLink: "Existe un enlace de vista activo.",
+      revokeDisplayLink: "Revocar enlace de vista",
     },
     notFound: {
       title: "Página no encontrada",

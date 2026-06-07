@@ -11,12 +11,14 @@
 
 - Responsive layout breakpoint refinement is done; the header now collapses earlier and the board uses the full viewport width.
 - Spanish localization now covers the public app shell, with a persisted language switcher in the profile menu.
-- The next active workstream is JSON export for round-tripping and AI-assisted generation.
+- Read-only display links can embed a cloud roadmap in unattended dashboards without OAuth.
+- The display route supports read-only timeline inspection, window navigation, clock refresh, and five-minute cloud-data polling.
 - Shared project collaboration is in place with invite-only acceptance and member management.
 - JSON export for round-tripping and AI-assisted generation is available.
 - AI-native roadmap JSON format is defined in a versioned spec.
 - Generic onboarding seed now comes from the canonical roadmap template.
 - Import dialog exposes downloadable AI skill and sample JSON for first-time users.
+- Production must apply `supabase/migrations/008_read_only_display_links.sql` before display links can be created.
 
 ## Constraints
 

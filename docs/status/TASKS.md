@@ -19,7 +19,7 @@
 
 ## Active task
 
-- `[~]` Add JSON export for round-tripping and AI-assisted generation.
+- No active task.
 
 ## Pending tasks
 
@@ -44,3 +44,5 @@
 - `[x]` Add Spanish language support for the public app shell.
 - `[x]` Translate core timeline labels, dialogs, and empty states to Spanish.
 - `[x]` Add a language switcher and persist the preferred locale.
+- `[x]` Create read-only display links for dashboard embedding.
+- `[x]` Add display-route polling and kiosk layout refinements.
