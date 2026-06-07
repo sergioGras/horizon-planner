@@ -14,6 +14,8 @@ import { cn } from "@/lib/utils";
 import type { Project, TimeScale } from "@/lib/roadmap-store";
 import { ProjectSwitcher } from "./ProjectSwitcher";
 
+const BRAND_LOGO_SRC = "/logo.png";
+
 type Props = {
   projects: Project[];
   activeProjectId: string | null;
@@ -75,9 +77,12 @@ export function BoardHeader({
         )}
       >
         <div className={cn("flex min-w-0 items-center", isCompactLayout ? "gap-2" : "gap-3")}>
-          <div className="font-display text-sm font-medium uppercase tracking-[0.16em] text-primary">
-            {copy.brand}
-          </div>
+          <img
+            src={BRAND_LOGO_SRC}
+            alt={copy.brand}
+            className="h-7 w-auto shrink-0 select-none object-contain"
+            draggable={false}
+          />
           <div
             className={cn("h-5 w-px bg-border/80", isCompactLayout ? "hidden" : "hidden sm:block")}
           />
