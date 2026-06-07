@@ -50,7 +50,9 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
   const [loading, setLoading] = useState(false);
   const [sharing, setSharing] = useState(false);
   const [copiedLink, setCopiedLink] = useState<string | null>(null);
+  const [inviteLinkCopied, setInviteLinkCopied] = useState(false);
   const [displayUrl, setDisplayUrl] = useState<string | null>(null);
+  const [displayLinkCopied, setDisplayLinkCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const isOwner = !!user && !!project && project.ownerId === user.id;
@@ -90,7 +92,9 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
     if (!open) {
       setEmail("");
       setCopiedLink(null);
+      setInviteLinkCopied(false);
       setDisplayUrl(null);
+      setDisplayLinkCopied(false);
       setError(null);
     }
   }, [open]);
@@ -131,6 +135,8 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
   async function handleCopyLink() {
     if (!copiedLink) return;
     await navigator.clipboard.writeText(copiedLink);
+    setInviteLinkCopied(true);
+    window.setTimeout(() => setInviteLinkCopied(false), 1400);
   }
 
   async function handleCreateDisplayLink() {
@@ -153,6 +159,8 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
   async function handleCopyDisplayLink() {
     if (!displayUrl) return;
     await navigator.clipboard.writeText(displayUrl);
+    setDisplayLinkCopied(true);
+    window.setTimeout(() => setDisplayLinkCopied(false), 1400);
   }
 
   async function handleRevokeDisplayLink() {
@@ -216,7 +224,7 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[84svh] overflow-hidden border-border bg-card sm:max-w-[680px] lg:max-w-[760px]">
+      <DialogContent className="flex max-h-[84svh] flex-col overflow-hidden border-border bg-card sm:max-w-[680px] lg:max-w-[760px]">
         <DialogHeader>
           <DialogTitle className="font-display tracking-tight">
             {copy.shareProject.title}
@@ -231,7 +239,7 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
             {copy.shareProject.noProjectSelected}
           </div>
         ) : (
-          <div className="min-h-0 space-y-4 overflow-y-auto pr-1">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto pr-1">
             <div className="rounded-lg border border-border bg-secondary/20 px-4 py-3">
               <div className="text-xs uppercase tracking-[0.14em] text-muted-foreground">
                 {copy.shareProject.projectLabel}
@@ -290,7 +298,9 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
                         onClick={handleCopyLink}
                       >
                         <Copy className="mr-2 h-4 w-4" />
-                        {copy.shareProject.copyLink}
+                        {inviteLinkCopied
+                          ? copy.shareProject.linkCopied
+                          : copy.shareProject.copyLink}
                       </Button>
                     </div>
                   </div>
@@ -321,7 +331,9 @@ export function ShareProjectDialog({ open, onOpenChange, project }: Props) {
                       </div>
                       <Button variant="ghost" size="sm" onClick={handleCopyDisplayLink}>
                         <Copy className="mr-2 h-4 w-4" />
-                        {copy.shareProject.copyLink}
+                        {displayLinkCopied
+                          ? copy.shareProject.linkCopied
+                          : copy.shareProject.copyLink}
                       </Button>
                     </div>
                   </div>

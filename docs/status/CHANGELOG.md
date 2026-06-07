@@ -2,6 +2,10 @@
 
 ## 2026-06-07
 
+- Fixed section move up/down so the reordered array now persists correctly instead of snapping back to the original order.
+- Fixed milestone date controls so the selected date truncates cleanly instead of overflowing the dialog on narrow widths.
+- Added visible copy feedback for invite links and read-only display links in the share dialog.
+- Fixed the share project dialog to use an internal scroll area so display-link and member controls remain reachable on shorter screens.
 - Added owner-managed read-only display links for embedding cloud roadmap projects without Google OAuth.
 - Added a token-scoped public display RPC that exposes only project title, sections, and milestones.
 - Added a kiosk-friendly `/display/$token` route with timeline navigation, milestone inspection, minute clock refresh, and five-minute cloud-data polling.

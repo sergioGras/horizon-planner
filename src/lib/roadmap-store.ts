@@ -859,8 +859,9 @@ export const useRoadmap = create<RoadmapState>()((set, get) => ({
 
     const reordered = previous.slice();
     [reordered[index], reordered[targetIndex]] = [reordered[targetIndex], reordered[index]];
-    const normalized = normalizeSections(reordered).map((section) => ({
+    const normalized = reordered.map((section, order) => ({
       ...section,
+      order,
       projectId: previous[0]?.projectId ?? get().activeProjectId ?? "",
     }));
     set({ sections: normalized });

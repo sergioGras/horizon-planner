@@ -117,7 +117,7 @@ export function MilestoneDialog({
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <Label htmlFor="section">{copy.milestoneDialog.sectionLabel}</Label>
                 <Select value={sectionId} onValueChange={setSectionId}>
                   <SelectTrigger id="section" aria-label={copy.milestoneDialog.sectionLabel}>
@@ -132,7 +132,7 @@ export function MilestoneDialog({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <Label htmlFor="milestone-type">{copy.milestoneDialog.typeLabel}</Label>
                 <Select value={type} onValueChange={(value) => setType(value as MilestoneType)}>
                   <SelectTrigger id="milestone-type" aria-label={copy.milestoneDialog.typeLabel}>
@@ -144,7 +144,7 @@ export function MilestoneDialog({
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <Label htmlFor="milestone-date">{copy.milestoneDialog.dateLabel}</Label>
                 <Popover>
                   <PopoverTrigger asChild>
@@ -152,13 +152,15 @@ export function MilestoneDialog({
                       id="milestone-date"
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal",
+                        "w-full min-w-0 justify-start overflow-hidden text-left font-normal",
                         !date && "text-muted-foreground",
                       )}
                       aria-label={copy.milestoneDialog.dateLabel}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4 opacity-60" />
-                      {date ? format(date, "PPP") : copy.milestoneDialog.datePlaceholder}
+                      <span className="min-w-0 truncate">
+                        {date ? format(date, "PPP") : copy.milestoneDialog.datePlaceholder}
+                      </span>
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">

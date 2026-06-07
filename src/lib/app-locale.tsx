@@ -186,6 +186,7 @@ export type ShellCopy = {
     createInvite: string;
     inviteLink: string;
     copyLink: string;
+    linkCopied: string;
     membersTitle: string;
     membersDescription: string;
     loadingMembers: string;
@@ -409,6 +410,7 @@ const COPY: Record<AppLocale, ShellCopy> = {
       createInvite: "Create invite",
       inviteLink: "Invite link",
       copyLink: "Copy link",
+      linkCopied: "Link copied",
       membersTitle: "Members",
       membersDescription: "People with access to this timeline project.",
       loadingMembers: "Loading members...",
@@ -633,6 +635,7 @@ const COPY: Record<AppLocale, ShellCopy> = {
       createInvite: "Crear invitación",
       inviteLink: "Enlace de invitación",
       copyLink: "Copiar enlace",
+      linkCopied: "Enlace copiado",
       membersTitle: "Miembros",
       membersDescription: "Personas con acceso a este proyecto timeline.",
       loadingMembers: "Cargando miembros...",

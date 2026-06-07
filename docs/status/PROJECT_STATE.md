@@ -13,6 +13,9 @@
 - Spanish localization now covers the public app shell, with a persisted language switcher in the profile menu.
 - Read-only display links can embed a cloud roadmap in unattended dashboards without OAuth.
 - The display route supports read-only timeline inspection, window navigation, clock refresh, and five-minute cloud-data polling.
+- The share project dialog now scrolls internally and shows copy feedback for invite and display links.
+- Milestone date controls now truncate cleanly inside the milestone dialog on narrow widths.
+- Section move up/down now rewrites section order correctly instead of re-sorting back to the old order.
 - Shared project collaboration is in place with invite-only acceptance and member management.
 - JSON export for round-tripping and AI-assisted generation is available.
 - AI-native roadmap JSON format is defined in a versioned spec.
