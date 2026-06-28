@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { DEFAULT_SECTION_COLOR, SECTION_COLORS, type SectionColorId } from "./section-colors";
+import type { Milestone, Section, TimeScale } from "./roadmap-store";
 
 export const ROADMAP_FILE_SCHEMA_NAME = "horizon-roadmap";
 export const ROADMAP_FILE_VERSION = 1 as const;
@@ -183,6 +184,86 @@ export function importedRoadmapToLocalShape(data: ImportedRoadmapData) {
     scale: data.scale,
     anchor: data.anchor,
   };
+}
+
+function toRoadmapKey(value: string, fallback: string) {
+  const key = value
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return key || fallback;
+}
+
+function uniqueRoadmapKey(baseKey: string, usedKeys: Set<string>) {
+  let key = baseKey;
+  let index = 2;
+
+  while (usedKeys.has(key)) {
+    key = `${baseKey}-${index}`;
+    index += 1;
+  }
+
+  usedKeys.add(key);
+  return key;
+}
+
+export function roadmapStateToFile({
+  title,
+  sections,
+  milestones,
+  scale,
+  anchor,
+}: {
+  title?: string;
+  sections: Section[];
+  milestones: Milestone[];
+  scale: TimeScale;
+  anchor: string;
+}): RoadmapFileV1 {
+  const usedKeys = new Set<string>();
+  const sectionKeyById = new Map<string, string>();
+
+  const fileSections = [...sections]
+    .sort((a, b) => a.order - b.order)
+    .map((section, index) => {
+      const key = uniqueRoadmapKey(toRoadmapKey(section.title, `section-${index + 1}`), usedKeys);
+      sectionKeyById.set(section.id, key);
+
+      return {
+        key,
+        title: section.title,
+        order: index,
+        color: section.color ?? DEFAULT_SECTION_COLOR,
+      };
+    });
+
+  return {
+    schema: ROADMAP_FILE_SCHEMA_NAME,
+    version: ROADMAP_FILE_VERSION,
+    project: {
+      title: title?.trim() || "Roadmap",
+      scale,
+      anchor,
+    },
+    sections: fileSections,
+    milestones: milestones
+      .filter((milestone) => sectionKeyById.has(milestone.sectionId))
+      .map((milestone) => ({
+        title: milestone.title,
+        description: milestone.description,
+        sectionKey: sectionKeyById.get(milestone.sectionId) ?? "",
+        date: milestone.date,
+        type: milestone.type ?? "commitment",
+      })),
+  };
+}
+
+export function createRoadmapExportJsonText(file: RoadmapFileV1) {
+  return JSON.stringify(file, null, 2) + "\n";
 }
 
 export function createRoadmapTemplate(): RoadmapFileV1 {

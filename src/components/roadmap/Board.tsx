@@ -25,7 +25,12 @@ import {
   type Project,
   type Section,
 } from "@/lib/roadmap-store";
-import { importedRoadmapToLocalShape, type ImportedRoadmapData } from "@/lib/roadmap-json";
+import {
+  createRoadmapExportJsonText,
+  importedRoadmapToLocalShape,
+  roadmapStateToFile,
+  type ImportedRoadmapData,
+} from "@/lib/roadmap-json";
 import { orderSections } from "@/lib/roadmap-view";
 import { getWindow, shiftAnchor } from "@/lib/timeline";
 import { fromLocalISODate, toLocalISODate, todayISO } from "@/lib/date-utils";
@@ -41,6 +46,18 @@ function hasImportDecision(userId: string) {
 
 function saveImportDecision(userId: string) {
   window.localStorage.setItem(getImportDecisionKey(userId), "done");
+}
+
+function toDownloadFileName(title: string) {
+  const slug = title
+    .trim()
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return `${slug || "roadmap"}-roadmap.json`;
 }
 
 export function Board() {
@@ -184,6 +201,29 @@ export function Board() {
     void importLocalRoadmap(localShape, data.title?.trim() || "Personal Roadmap");
   }
 
+  function handleExportRoadmapFile() {
+    const projectTitle = activeProject?.title ?? "Roadmap";
+    const roadmapFile = roadmapStateToFile({
+      title: projectTitle,
+      sections,
+      milestones,
+      scale,
+      anchor,
+    });
+    const blob = new Blob([createRoadmapExportJsonText(roadmapFile)], {
+      type: "application/json",
+    });
+    const url = URL.createObjectURL(blob);
+    const downloadLink = document.createElement("a");
+
+    downloadLink.href = url;
+    downloadLink.download = toDownloadFileName(projectTitle);
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="flex h-dvh overflow-hidden bg-background text-foreground">
       <div className="flex min-h-0 w-full flex-col">
@@ -209,6 +249,7 @@ export function Board() {
           onNext={() => navigateWindow(1)}
           onToday={() => setAnchor(todayISO())}
           onImportRoadmap={() => setRoadmapImportOpen(true)}
+          onExportRoadmap={handleExportRoadmapFile}
           onAddMilestone={() => setMilestoneDialog({ open: true })}
         />
 

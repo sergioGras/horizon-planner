@@ -36,6 +36,7 @@ export type ShellCopy = {
     scaleYear: string;
     today: string;
     importRoadmap: string;
+    exportRoadmap: string;
     newMilestone: string;
     saving: string;
     shareProject: string;
@@ -252,6 +253,7 @@ const COPY: Record<AppLocale, ShellCopy> = {
       scaleYear: "Year",
       today: "Today",
       importRoadmap: "Import roadmap",
+      exportRoadmap: "Export roadmap",
       newMilestone: "New milestone",
       saving: "Saving",
       shareProject: "Share project",
@@ -476,6 +478,7 @@ const COPY: Record<AppLocale, ShellCopy> = {
       scaleYear: "Año",
       today: "Hoy",
       importRoadmap: "Importar roadmap",
+      exportRoadmap: "Exportar roadmap",
       newMilestone: "Nuevo hito",
       saving: "Guardando",
       shareProject: "Compartir proyecto",

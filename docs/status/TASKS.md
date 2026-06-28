@@ -50,4 +50,4 @@
 - `[x]` Add inline feedback after copying invite and display links.
 - `[x]` Prevent milestone date controls from overflowing the dialog on narrow widths.
 - `[x]` Restore section move up/down behavior.
-- `[x]` Restore section move up/down behavior.
+- `[x]` Refine intention milestones with a softer striped treatment.

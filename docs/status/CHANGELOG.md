@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 2026-06-28
+
+- Added top-bar JSON export for round-tripping edited roadmap files through the `horizon-roadmap` v1 schema.
+
+## 2026-06-08
+
+- Replaced intention milestone fills with a softer diagonal striped treatment while preserving section colors and dashed borders.
+
 ## 2026-06-07
 
 - Fixed section move up/down so the reordered array now persists correctly instead of snapping back to the original order.

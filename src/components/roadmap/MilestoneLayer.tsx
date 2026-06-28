@@ -114,7 +114,14 @@ function MilestoneChip({
         {
           left: `${offsetPct}%`,
           top: `${getStackTop(stackIndex, stackCount)}%`,
-          backgroundColor: isIntention ? sectionColor.soft : undefined,
+          backgroundColor: isIntention ? "var(--card)" : undefined,
+          backgroundImage: isIntention
+            ? `repeating-linear-gradient(
+                135deg,
+                transparent 0 5px,
+                color-mix(in oklch, ${sectionColor.border} 34%, transparent) 5px 6px
+              )`
+            : undefined,
           borderColor: sectionColor.border,
           color: isIntention ? sectionColor.ink : undefined,
           "--section-color": sectionColor.swatch,
@@ -148,7 +155,9 @@ function MilestoneChip({
             style={{
               borderColor: isIntention ? sectionColor.border : sectionColor.soft,
               color: sectionColor.ink,
-              backgroundColor: isIntention ? sectionColor.soft : undefined,
+              backgroundColor: isIntention
+                ? "color-mix(in oklch, var(--card) 88%, transparent)"
+                : undefined,
             }}
           >
             {isIntention ? copy.timeline.intentionLabel : copy.timeline.commitmentLabel}

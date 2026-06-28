@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, MoreHorizontal, Plus, Upload } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, MoreHorizontal, Plus, Upload } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,6 +38,7 @@ type Props = {
   onNext: () => void;
   onToday: () => void;
   onImportRoadmap: () => void;
+  onExportRoadmap: () => void;
   onAddMilestone: () => void;
 };
 
@@ -63,6 +64,7 @@ export function BoardHeader({
   onNext,
   onToday,
   onImportRoadmap,
+  onExportRoadmap,
   onAddMilestone,
 }: Props) {
   const isCompactLayout = useIsCompactLayout();
@@ -148,6 +150,7 @@ export function BoardHeader({
                 canCreateMilestone={canCreateMilestone}
                 onToday={onToday}
                 onImportRoadmap={onImportRoadmap}
+                onExportRoadmap={onExportRoadmap}
                 onAddMilestone={onAddMilestone}
               />
             ) : (
@@ -168,6 +171,15 @@ export function BoardHeader({
                 >
                   <Upload className="h-4 w-4" />
                   <span className="hidden sm:inline">{copy.header.importRoadmap}</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground"
+                  onClick={onExportRoadmap}
+                >
+                  <Download className="h-4 w-4" />
+                  <span className="hidden sm:inline">{copy.header.exportRoadmap}</span>
                 </Button>
                 <Button
                   onClick={onAddMilestone}
@@ -192,12 +204,14 @@ function HeaderOverflowMenu({
   canCreateMilestone,
   onToday,
   onImportRoadmap,
+  onExportRoadmap,
   onAddMilestone,
 }: {
   copy: ReturnType<typeof useShellCopy>;
   canCreateMilestone: boolean;
   onToday: () => void;
   onImportRoadmap: () => void;
+  onExportRoadmap: () => void;
   onAddMilestone: () => void;
 }) {
   return (
@@ -212,6 +226,10 @@ function HeaderOverflowMenu({
         <DropdownMenuItem onClick={onImportRoadmap}>
           <Upload className="mr-2 h-4 w-4" />
           {copy.header.importRoadmap}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onExportRoadmap}>
+          <Download className="mr-2 h-4 w-4" />
+          {copy.header.exportRoadmap}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onAddMilestone} disabled={!canCreateMilestone}>

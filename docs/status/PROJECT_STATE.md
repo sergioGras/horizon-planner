@@ -16,8 +16,9 @@
 - The share project dialog now scrolls internally and shows copy feedback for invite and display links.
 - Milestone date controls now truncate cleanly inside the milestone dialog on narrow widths.
 - Section move up/down now rewrites section order correctly instead of re-sorting back to the old order.
+- Intention milestones use a soft diagonal striped background and dashed border to remain visibly secondary to commitments.
 - Shared project collaboration is in place with invite-only acceptance and member management.
-- JSON export for round-tripping and AI-assisted generation is available.
+- JSON export for round-tripping and AI-assisted generation is available from the top bar.
 - AI-native roadmap JSON format is defined in a versioned spec.
 - Generic onboarding seed now comes from the canonical roadmap template.
 - Import dialog exposes downloadable AI skill and sample JSON for first-time users.
